@@ -1,0 +1,3288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Boi's Chimeric Catalogue</title>
+<link href="https://fonts.googleapis.com/css2?family=Uncial+Antiqua&family=Crimson+Pro:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --ink:#120a00;--vellum:#2c1a0e;--parchment:#3d2410;
+  --aged:#9b7450;--faded:#cdb896;--highlight:#ecdfc0;
+  --gold:#c9900c;--gold-lt:#f0c040;--crimson:#8b1a1a;
+  --iron:#5a5a5a;--ivory:#f0e6cc;
+  --slot-empty-border:rgba(120,80,40,0.35);
+  --slot-empty-color:rgba(160,110,60,0.55);
+  --drawer-w:300px;--header-h:56px;
+}
+html,body{height:100%;overflow-x:hidden;background:var(--ink);color:var(--ivory);font-family:'Crimson Pro',Georgia,serif;font-size:16px;line-height:1.55;}
+
+/* BG */
+#bg-canvas{position:fixed;inset:0;z-index:0;pointer-events:none;}
+.grain{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.04;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size:256px 256px;}
+.vignette{position:fixed;inset:0;z-index:2;pointer-events:none;background:radial-gradient(ellipse at center,transparent 35%,rgba(0,0,0,.75) 100%);}
+#app{position:relative;z-index:3;min-height:100vh;display:flex;flex-direction:column;}
+
+/* HEADER */
+header{height:var(--header-h);background:rgba(14,6,0,.94);border-bottom:1px solid var(--parchment);
+  display:flex;align-items:center;gap:10px;padding:0 14px;
+  position:sticky;top:0;z-index:200;backdrop-filter:blur(6px);}
+header::after{content:'';position:absolute;bottom:-1px;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--gold) 40%,var(--gold) 60%,transparent);opacity:.35;}
+.header-title{flex:1;display:flex;flex-direction:column;gap:1px;min-width:0;}
+.title-main{font-family:'Uncial Antiqua',serif;font-size:clamp(11px,3vw,17px);color:var(--gold-lt);
+  text-shadow:0 0 16px rgba(201,144,12,.45);line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.title-sub{font-size:9px;color:var(--aged);letter-spacing:2.5px;text-transform:uppercase;font-style:italic;}
+.header-actions{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.btn-icon{background:rgba(60,30,10,.55);border:1px solid var(--parchment);color:var(--faded);
+  width:38px;height:38px;border-radius:6px;cursor:pointer;font-size:18px;
+  display:flex;align-items:center;justify-content:center;transition:all .18s;flex-shrink:0;}
+.btn-icon:hover{border-color:var(--gold);color:var(--gold-lt);}
+.btn-icon.lock-active{border-color:var(--crimson);color:#e8a0a0;background:rgba(139,26,26,.22);}
+
+/* LOCK BANNER */
+#lock-banner{display:none;position:sticky;top:var(--header-h);z-index:190;
+  background:rgba(90,10,10,.92);border-bottom:1px solid var(--crimson);
+  color:#f0b0b0;font-family:'Crimson Pro',serif;font-size:14px;font-weight:600;
+  padding:8px 16px;text-align:center;cursor:pointer;backdrop-filter:blur(4px);transition:background .2s;}
+#lock-banner:hover{background:rgba(120,15,15,.95);}
+#lock-banner.visible{display:block;}
+#lock-banner span{opacity:.7;font-weight:400;margin-left:8px;font-size:13px;}
+
+/* DRAWER */
+#drawer-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:300;}
+#drawer-overlay.open{display:block;}
+#drawer{position:fixed;top:0;right:0;bottom:0;width:var(--drawer-w);max-width:88vw;
+  background:rgba(10,5,0,.98);border-left:1px solid var(--parchment);
+  z-index:400;display:flex;flex-direction:column;
+  transform:translateX(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);backdrop-filter:blur(10px);}
+#drawer.open{transform:translateX(0);}
+#drawer::before{content:'';position:absolute;top:0;left:-1px;bottom:0;width:1px;
+  background:linear-gradient(180deg,transparent,var(--gold) 25%,var(--gold) 75%,transparent);opacity:.3;}
+.drawer-hd{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 10px;border-bottom:1px solid var(--parchment);}
+.drawer-hd-title{font-family:'Uncial Antiqua',serif;font-size:13px;color:var(--gold);}
+.drawer-close{background:none;border:none;color:var(--aged);cursor:pointer;font-size:20px;line-height:1;padding:2px 4px;}
+.drawer-nav{border-bottom:1px solid var(--parchment);padding:6px 0;}
+.drawer-nav-btn{display:flex;align-items:center;gap:10px;width:100%;padding:10px 18px;
+  background:none;border:none;border-right:3px solid transparent;color:var(--faded);
+  cursor:pointer;font-family:'Crimson Pro',serif;font-size:15px;text-align:left;transition:all .15s;}
+.drawer-nav-btn:hover{color:var(--highlight);background:rgba(201,144,12,.06);}
+.drawer-nav-btn.active{color:var(--gold-lt);border-right-color:var(--gold);background:rgba(201,144,12,.1);}
+.drawer-body{flex:1;overflow-y:auto;padding:14px;}
+.drawer-body::-webkit-scrollbar{width:4px;}
+.drawer-body::-webkit-scrollbar-thumb{background:var(--parchment);border-radius:2px;}
+
+/* MAIN */
+main{flex:1;padding:16px;max-width:900px;margin:0 auto;width:100%;}
+
+/* HERO */
+.hero-panel{display:flex;gap:14px;align-items:center;background:rgba(25,12,0,.7);
+  border:1px solid var(--parchment);border-radius:8px;padding:14px;margin-bottom:16px;position:relative;}
+.hero-panel::before{content:'❧';position:absolute;top:-10px;left:14px;
+  background:var(--ink);color:var(--gold);font-size:14px;padding:0 6px;}
+
+/* PORTRAIT */
+.portrait-wrap{position:relative;flex-shrink:0;width:72px;height:72px;cursor:pointer;}
+.portrait-img,.portrait-ph{width:72px;height:72px;border-radius:6px;display:block;}
+.portrait-img{object-fit:cover;border:2px solid var(--parchment);transition:filter .18s;}
+.portrait-img:hover{filter:brightness(.82);}
+.portrait-ph{background:rgba(50,28,8,.6);border:2px dashed var(--parchment);
+  display:flex;align-items:center;justify-content:center;color:var(--parchment);font-size:28px;transition:border-color .18s;}
+.portrait-ph:hover{border-color:var(--gold);}
+/* Portrait manage modal options */
+.portrait-modal-opts{display:flex;flex-direction:column;gap:10px;margin-top:4px;}
+.portrait-modal-btn{display:flex;align-items:center;gap:12px;padding:12px 14px;
+  background:rgba(30,15,0,.6);border:1px solid var(--parchment);border-radius:7px;
+  color:var(--faded);font-family:'Crimson Pro',serif;font-size:15px;cursor:pointer;transition:all .18s;text-align:left;}
+.portrait-modal-btn:hover{border-color:var(--gold);color:var(--highlight);background:rgba(60,30,0,.6);}
+.portrait-modal-btn.danger:hover{border-color:var(--crimson);color:#e8a0a0;background:rgba(80,10,10,.5);}
+.portrait-modal-icon{font-size:20px;width:28px;text-align:center;flex-shrink:0;}
+
+.hero-info{flex:1;min-width:0;}
+.hero-name-wrap{display:flex;align-items:center;gap:6px;margin-bottom:6px;}
+.hero-name{font-family:'Uncial Antiqua',serif;font-size:clamp(13px,3.8vw,20px);color:var(--highlight);
+  cursor:pointer;line-height:1.2;border-bottom:1px dashed transparent;transition:border-color .15s;}
+.hero-name:hover{border-bottom-color:var(--gold);}
+.hero-name-input{font-family:'Uncial Antiqua',serif;font-size:clamp(13px,3.8vw,20px);
+  background:rgba(30,15,0,.8);border:1px solid var(--gold);color:var(--highlight);
+  border-radius:4px;padding:1px 6px;outline:none;width:100%;max-width:220px;}
+
+/* Save DC display */
+.hero-save-dc{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  margin-left:auto;flex-shrink:0;
+  background:rgba(139,26,26,.15);
+  border:1px solid rgba(139,26,26,.5);
+  border-radius:8px;padding:8px 14px;min-width:72px;
+  text-align:center;
+}
+.save-dc-value{
+  font-family:'Uncial Antiqua',serif;font-size:28px;color:#e8a0a0;
+  line-height:1;text-shadow:0 0 12px rgba(139,26,26,.6);
+}
+.save-dc-label{font-size:9px;color:var(--iron);text-transform:uppercase;letter-spacing:1.5px;margin-top:3px;}
+.save-dc-formula{font-size:10px;color:rgba(200,120,120,.6);font-style:italic;margin-top:2px;}
+
+.hero-stats{display:flex;gap:20px;flex-wrap:wrap;justify-content:space-around;}
+.hero-stat{display:flex;flex-direction:column;gap:1px;align-items:center;}
+.stat-label{font-size:10px;color:var(--iron);text-transform:uppercase;letter-spacing:1.5px;}
+.stat-value{font-family:'Uncial Antiqua',serif;font-size:20px;color:var(--gold);line-height:1.1;}
+
+/* TABS */
+.tabs{display:flex;gap:0;margin-bottom:0;border-bottom:1px solid var(--parchment);position:sticky;top:var(--header-h);z-index:150;background:rgba(10,5,0,.97);backdrop-filter:blur(8px);}
+.tab-btn{flex:1;padding:10px 16px;background:none;border:none;
+  font-family:'Uncial Antiqua',serif;font-size:13px;color:var(--aged);
+  cursor:pointer;transition:all .18s;position:relative;
+  border-bottom:2px solid transparent;margin-bottom:-1px;}
+.tab-btn:hover{color:var(--faded);}
+.tab-btn.active{color:var(--gold-lt);border-bottom-color:var(--gold);}
+.tab-btn .tab-count{font-family:'Crimson Pro',serif;font-size:11px;color:var(--iron);margin-left:5px;font-style:italic;}
+.tab-panel{display:none;padding-top:16px;}
+.tab-panel.active{display:block;}
+
+/* SECTION HEAD */
+.sec-head{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+.sec-title{font-family:'Uncial Antiqua',serif;font-size:14px;color:var(--gold);white-space:nowrap;}
+.sec-rule{flex:1;height:1px;background:linear-gradient(90deg,var(--parchment),transparent);}
+.sec-count{font-size:12px;color:var(--iron);font-style:italic;white-space:nowrap;}
+
+/* POOL */
+.pool-wrap{position:relative;}
+.pool-grid{display:grid;grid-template-columns:1fr;gap:12px;position:relative;}
+@media(min-width:560px){.pool-grid{grid-template-columns:repeat(3,1fr);}}
+#epistasis-svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:20;overflow:visible;}
+
+/* EPISTASIS SECTION — sits between header and pool */
+.epistasis-section{margin-bottom:16px;}
+/* ── Epistasis card ──────────────────────────────────── */
+.epistasis-banner{
+  background:rgba(6,3,0,.97);
+  border:1px solid rgba(80,50,10,.4);
+  border-radius:8px;padding:0;margin-bottom:10px;
+  position:relative;overflow:hidden;
+  animation:bannerIn .45s ease;
+}
+.epistasis-banner::before{
+  content:'';position:absolute;inset:-1px;border-radius:9px;z-index:0;
+  background:conic-gradient(from var(--ep-angle,0deg),
+    transparent 0%,transparent 35%,
+    rgba(220,180,60,.65) 48%,rgba(201,144,12,.3) 50%,rgba(220,180,60,.65) 52%,
+    transparent 65%,transparent 100%);
+  animation:epTrail 4s linear infinite;
+  pointer-events:none;
+}
+.epistasis-banner::after{
+  content:'';position:absolute;inset:1px;border-radius:7px;
+  background:rgba(8,4,0,.97);z-index:0;pointer-events:none;
+}
+@property --ep-angle{syntax:'<angle>';initial-value:0deg;inherits:false;}
+@keyframes epTrail{to{--ep-angle:360deg;}}
+@supports not (background:conic-gradient(from 1deg,red,red)){
+  .epistasis-banner::before{
+    background:linear-gradient(90deg,transparent,rgba(201,144,12,.5),transparent);
+    animation:epTrailFb 2.5s ease-in-out infinite alternate;
+  }
+  @keyframes epTrailFb{from{opacity:.25}to{opacity:.8}}
+}
+.epistasis-banner-inner{position:relative;z-index:1;padding:11px 13px;cursor:pointer;user-select:none;}
+.epistasis-header{display:flex;align-items:center;gap:8px;}
+.ep-chevron{margin-left:auto;font-size:11px;color:var(--aged);transition:transform .25s;flex-shrink:0;}
+.epistasis-banner.ep-open .ep-chevron{transform:rotate(180deg);}
+.epistasis-details{display:none;padding-top:10px;border-top:1px solid rgba(80,50,10,.4);margin-top:8px;}
+.epistasis-banner.ep-open .epistasis-details{display:block;}
+.epistasis-name{font-family:'Uncial Antiqua',serif;font-size:13px;color:var(--gold-lt);}
+.epistasis-flavor{font-style:italic;color:var(--aged);font-size:13px;margin-bottom:6px;position:relative;z-index:1;}
+.epistasis-bonus{font-size:13px;color:var(--faded);position:relative;z-index:1;}
+.epistasis-bonus::before{content:'⚙ ';color:var(--gold);}
+.mutation-tag{font-size:10px;padding:1px 8px;border-radius:20px;background:rgba(139,26,26,.3);border:1px solid #6b2020;color:#e8a0a0;font-style:italic;}
+.mutation-effect{font-size:12px;color:#e8a0a0;margin-top:5px;font-style:italic;position:relative;z-index:1;}
+.mutation-effect::before{content:'🌀 ';}
+.ep-available-tag{font-size:10px;padding:1px 8px;border-radius:20px;background:rgba(80,160,80,.18);border:1px solid #5a9a5a;color:#90d090;font-style:italic;}
+.ep-active-tag{font-size:10px;padding:1px 8px;border-radius:20px;background:rgba(201,144,12,.18);border:1px solid var(--gold);color:var(--gold-lt);font-style:italic;}
+.ep-spent-tag{font-size:10px;padding:1px 8px;border-radius:20px;background:rgba(80,80,80,.2);border:1px solid var(--iron);color:var(--iron);font-style:italic;}
+.epistasis-controls{margin-top:10px;display:flex;flex-wrap:wrap;gap:8px;position:relative;z-index:1;}
+.btn-ep-use{font-family:'Crimson Pro',serif;font-weight:600;font-size:13px;padding:5px 14px;
+  border-radius:5px;cursor:pointer;border:1px solid;background:rgba(0,0,0,.3);transition:all .18s;}
+.btn-ep-use:hover{filter:brightness(1.2);}
+.btn-ep-dismiss{font-family:'Crimson Pro',serif;font-weight:500;font-size:12px;padding:4px 12px;
+  border-radius:5px;cursor:pointer;border:1px solid var(--iron);color:var(--iron);background:rgba(0,0,0,.3);transition:all .18s;}
+.btn-ep-dismiss:hover{border-color:var(--crimson);color:#e8a0a0;}
+
+/* TRAIT CARD */
+.trait-card{position:relative;background:rgba(16,8,0,.88);border:1px solid var(--parchment);
+  border-radius:8px;padding:13px;transition:border-color .25s,box-shadow .25s;overflow:visible;}
+.trait-card-bg{position:absolute;inset:0;border-radius:8px;opacity:.14;pointer-events:none;}
+.trait-card.exhausted{opacity:.5;filter:grayscale(.4);}
+.trait-inner{position:relative;z-index:1;}
+.trait-header{display:flex;align-items:flex-start;justify-content:space-between;gap:6px;margin-bottom:7px;}
+.trait-name{font-family:'Uncial Antiqua',serif;font-size:13px;line-height:1.25;flex:1;}
+.trait-badges{display:flex;align-items:center;gap:5px;flex-shrink:0;}
+.trait-type-badge{font-size:10px;padding:1px 7px;border-radius:20px;border:1px solid;
+  background:rgba(0,0,0,.35);font-family:'Crimson Pro',serif;white-space:nowrap;}
+.rarity-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.trait-ability{font-size:14px;color:var(--faded);font-style:italic;line-height:1.45;margin-bottom:8px;}
+
+/* Dice stat line — catalogue only */
+.trait-dice-stat{display:flex;align-items:center;gap:6px;margin-bottom:10px;font-size:13px;}
+.dice-stat-icon{color:var(--gold);font-size:12px;}
+.dice-stat-formula{font-family:'Uncial Antiqua',serif;font-size:12px;color:var(--gold-lt);}
+.dice-stat-label{color:var(--aged);font-style:italic;}
+
+.use-tracker{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px;}
+.use-pip{width:12px;height:12px;border-radius:50%;border:1px solid;background:transparent;transition:background .18s;}
+.trait-actions{display:flex;flex-wrap:wrap;gap:6px;}
+
+.btn-trait{font-family:'Crimson Pro',serif;font-weight:600;font-size:13px;padding:5px 11px;
+  border-radius:5px;cursor:pointer;transition:all .18s;border:1px solid;background:rgba(0,0,0,.3);}
+.btn-trait:disabled{opacity:.3;cursor:not-allowed;}
+.btn-trait:not(:disabled):hover{filter:brightness(1.15);}
+.btn-trait.remove-btn{border-color:var(--crimson);color:#c07070;font-size:12px;padding:4px 10px;margin-left:auto;background:rgba(139,26,26,.1);}
+.btn-trait.remove-btn:hover{border-color:#e05050!important;color:#f0a0a0!important;background:rgba(139,26,26,.25)!important;}
+.btn-trait.add-btn{border-style:dashed;}
+.btn-trait.add-btn:disabled{border-style:solid;}
+
+/* Empty pool slot — lighter, more visible */
+.pool-slot-empty{
+  border:1px dashed var(--slot-empty-border);
+  border-radius:8px;min-height:140px;
+  display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;
+  color:var(--slot-empty-color);font-style:italic;font-size:13px;
+  background:rgba(60,30,8,.12);
+}
+.pool-slot-empty-icon{font-size:22px;opacity:.5;}
+
+
+/* Pool slot picker */
+.pool-slot-empty{cursor:pointer;transition:border-color .18s,background .18s;}
+.pool-slot-empty:hover{border-color:rgba(180,130,60,0.65);background:rgba(80,45,10,.18);}
+.pool-picker-row{display:flex;align-items:center;justify-content:space-between;
+  padding:9px 12px;border:1px solid var(--parchment);border-radius:6px;
+  cursor:pointer;transition:all .15s;gap:10px;}
+.pool-picker-row:hover{border-color:var(--type-color,var(--gold));background:rgba(40,20,0,.5);}
+.pool-picker-row.in-pool{opacity:.4;cursor:not-allowed;pointer-events:none;}
+.pool-picker-left{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0;}
+.pool-picker-name{font-family:'Uncial Antiqua',serif;font-size:13px;}
+.pool-picker-school{font-size:11px;font-style:italic;color:var(--aged);}
+.pool-picker-add{font-family:'Crimson Pro',serif;font-size:12px;font-weight:600;
+  padding:3px 10px;border-radius:4px;border:1px solid;background:rgba(0,0,0,.3);
+  cursor:pointer;white-space:nowrap;flex-shrink:0;transition:filter .15s;}
+.pool-picker-add:hover{filter:brightness(1.2);}
+
+
+/* Sort bar */
+
+/* Filter dropdown */
+.filter-wrap{position:relative;}
+.filter-btn{background:rgba(28,12,0,.75);border:1px solid var(--parchment);border-radius:5px;
+  color:var(--faded);font-family:'Crimson Pro',serif;font-size:13px;padding:5px 12px;
+  cursor:pointer;transition:border-color .18s;white-space:nowrap;display:flex;align-items:center;gap:6px;}
+.filter-btn:hover,.filter-btn.active{border-color:var(--gold);color:var(--gold-lt);}
+.filter-btn .filter-badge{background:var(--gold);color:#000;border-radius:10px;
+  font-size:10px;font-weight:700;padding:1px 5px;line-height:1.4;}
+.filter-panel{display:none;position:absolute;top:calc(100% + 6px);left:0;
+  background:rgba(10,5,0,.98);border:1px solid var(--parchment);border-radius:8px;
+  padding:14px;min-width:220px;z-index:500;box-shadow:0 8px 32px rgba(0,0,0,.7);}
+.filter-panel.open{display:block;}
+.filter-panel::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:.4;border-radius:8px 8px 0 0;}
+.filter-section-lbl{font-family:'Uncial Antiqua',serif;font-size:10px;color:var(--aged);
+  text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;display:block;}
+.filter-check-row{display:flex;align-items:center;gap:8px;padding:3px 0;cursor:pointer;}
+.filter-check-row input[type=checkbox]{accent-color:var(--gold);width:13px;height:13px;cursor:pointer;flex-shrink:0;}
+.filter-check-row label{font-size:13px;color:var(--faded);cursor:pointer;line-height:1.3;}
+.filter-divider{height:1px;background:var(--parchment);opacity:.5;margin:10px 0;}
+.filter-clear{font-family:'Crimson Pro',serif;font-size:12px;color:var(--aged);
+  background:none;border:none;cursor:pointer;padding:4px 0;text-decoration:underline;text-underline-offset:2px;}
+.filter-clear:hover{color:var(--gold-lt);}
+.filter-type-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:2px;}
+.filter-type-btn{font-family:'Crimson Pro',serif;font-size:12px;padding:3px 9px;border-radius:4px;
+  border:1px solid var(--parchment);color:var(--aged);background:none;cursor:pointer;transition:all .15s;}
+.filter-type-btn.active{border-color:var(--gold);color:var(--gold-lt);background:rgba(201,144,12,.12);}
+
+
+/* Unlock code bar */
+.unlock-bar{display:flex;gap:8px;align-items:center;margin-bottom:14px;flex-wrap:wrap;
+  padding:10px 14px;background:rgba(20,10,0,.7);border:1px solid var(--parchment);
+  border-radius:8px;position:relative;}
+.unlock-bar::before{content:'🔐';position:absolute;top:-10px;left:12px;
+  background:var(--ink);padding:0 6px;font-size:13px;}
+.unlock-input{flex:1;min-width:160px;background:rgba(28,12,0,.8);
+  border:1px solid var(--parchment);border-radius:5px;
+  color:var(--ivory);font-family:'Crimson Pro',serif;font-size:14px;
+  padding:6px 10px;outline:none;letter-spacing:1px;transition:border-color .18s;}
+.unlock-input:focus{border-color:var(--gold);}
+.unlock-input::placeholder{color:var(--iron);letter-spacing:0;}
+.btn-unlock{font-family:'Crimson Pro',serif;font-weight:600;font-size:13px;
+  padding:6px 14px;border-radius:5px;cursor:pointer;
+  background:rgba(201,144,12,.15);border:1px solid var(--gold);color:var(--gold-lt);
+  transition:all .18s;white-space:nowrap;}
+.btn-unlock:hover{background:rgba(201,144,12,.28);}
+/* Locked section */
+.locked-section-hdr{display:flex;align-items:center;gap:10px;margin:20px 0 12px;padding-top:16px;
+  border-top:1px solid rgba(80,40,10,.5);}
+.locked-section-title{font-family:'Uncial Antiqua',serif;font-size:13px;color:var(--iron);letter-spacing:.5px;}
+.locked-section-rule{flex:1;height:1px;background:linear-gradient(90deg,rgba(80,40,10,.5),transparent);}
+/* Locked trait card */
+.trait-card.locked{opacity:0.55;}
+.trait-card.locked .trait-ability{transition:filter .3s;}
+.trait-card.locked.blurred .trait-ability{filter:blur(4px);user-select:none;}
+.lock-icon{font-size:13px;color:var(--iron);flex-shrink:0;}
+
+
+/* Action bar between hero and tabs */
+
+/* Ink spread unlock animation */
+@keyframes inkSpreadUnlock{
+  0%  {transform:scale(0);opacity:.9;}
+  60% {transform:scale(1.15);opacity:.55;}
+  100%{transform:scale(1.5);opacity:0;}
+}
+@keyframes inkSealLock{
+  0%  {opacity:0;filter:brightness(2);}
+  30% {opacity:.7;filter:brightness(1.2);}
+  100%{opacity:0;filter:brightness(.3) grayscale(1);}
+}
+@keyframes traitUnlockPulse{
+  0%  {box-shadow:0 0 0 0 rgba(201,144,12,.8);}
+  50% {box-shadow:0 0 0 18px rgba(201,144,12,0);}
+  100%{box-shadow:0 0 0 0 rgba(201,144,12,0);}
+}
+@keyframes traitLockFade{
+  0%  {filter:brightness(1);}
+  100%{filter:brightness(.45) grayscale(.7);}
+}
+.ink-burst{
+  position:fixed;pointer-events:none;z-index:9999;
+  border-radius:50%;transform:scale(0);
+}
+.ink-burst.unlock{
+  background:radial-gradient(circle,rgba(240,192,64,.6) 0%,rgba(201,144,12,.3) 40%,transparent 70%);
+  animation:inkSpreadUnlock .7s cubic-bezier(.2,.8,.4,1) forwards;
+}
+.ink-burst.lock{
+  background:radial-gradient(circle,rgba(40,20,0,.9) 0%,rgba(20,8,0,.6) 40%,transparent 70%);
+  animation:inkSealLock .6s ease-in forwards;
+}
+
+.action-bar{display:flex;gap:0;margin-bottom:0;}
+.btn-action{flex:1;padding:11px 8px;background:rgba(20,10,0,.82);border:1px solid var(--parchment);
+  color:var(--faded);font-family:'Uncial Antiqua',serif;font-size:12px;cursor:pointer;
+  transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px;
+  position:relative;overflow:hidden;}
+.btn-action:first-child{border-radius:8px 0 0 8px;border-right:none;}
+.btn-action:last-child{border-radius:0 8px 8px 0;}
+.btn-action::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(201,144,12,.06),transparent 60%);opacity:0;transition:opacity .2s;}
+.btn-action:hover{border-color:var(--gold);color:var(--gold-lt);}
+.btn-action:hover::before{opacity:1;}
+.btn-action:active{transform:scale(.98);}
+.btn-action-icon{font-size:20px;line-height:1;}
+.btn-action-label{font-size:11px;letter-spacing:.5px;}
+/* D20 themed modal */
+.d20-modal{max-width:320px;text-align:center;cursor:pointer;}
+.d20-shape{width:140px;height:140px;margin:0 auto 18px;position:relative;display:flex;align-items:center;justify-content:center;}
+.d20-svg{width:140px;height:140px;filter:drop-shadow(0 0 18px rgba(201,144,12,.5));}
+.d20-result{position:absolute;font-family:'Uncial Antiqua',serif;font-size:38px;color:var(--gold-lt);
+  text-shadow:0 0 16px rgba(201,144,12,.8);line-height:1;}
+.d20-rolling .d20-svg{animation:d20spin .12s linear infinite;}
+@keyframes d20spin{0%{transform:rotate(-6deg) scale(1.04);}50%{transform:rotate(6deg) scale(.97);}100%{transform:rotate(-6deg) scale(1.04);}}
+.d20-label{font-size:11px;color:var(--aged);text-transform:uppercase;letter-spacing:2px;margin-top:6px;display:block;}
+.d20-dismiss-hint{font-size:12px;color:var(--iron);font-style:italic;margin-top:14px;}
+/* Unlock modal */
+.unlock-modal{max-width:360px;}
+.unlock-result{text-align:center;padding:8px 0;}
+.unlock-result-icon{font-size:40px;margin-bottom:10px;}
+.unlock-result-name{font-family:'Uncial Antiqua',serif;font-size:18px;color:var(--gold-lt);margin-bottom:8px;}
+.unlock-result-flavor{font-size:14px;color:var(--faded);font-style:italic;line-height:1.5;}
+.unlock-input-row{display:flex;gap:8px;align-items:center;margin-bottom:10px;}
+
+.sort-bar{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;}
+.sort-label{font-size:11px;color:var(--aged);text-transform:uppercase;letter-spacing:1.5px;white-space:nowrap;}
+.sort-select{background:rgba(28,12,0,.75);border:1px solid var(--parchment);border-radius:5px;
+  color:var(--faded);font-family:'Crimson Pro',serif;font-size:13px;padding:5px 10px;
+  outline:none;cursor:pointer;transition:border-color .18s;}
+.sort-select:focus,.sort-select:hover{border-color:var(--gold);}
+.sort-select option{background:#140800;}
+/* Favourite star */
+.fav-star{background:none;border:none;cursor:pointer;font-size:15px;line-height:1;
+  opacity:.4;transition:opacity .15s,transform .15s;padding:0 2px;flex-shrink:0;}
+.fav-star:hover{opacity:.8;}
+.fav-star.active{opacity:1;transform:scale(1.15);}
+/* School group header */
+.school-group-hdr{font-family:'Uncial Antiqua',serif;font-size:11px;letter-spacing:2px;
+  text-transform:uppercase;padding:10px 2px 5px;border-bottom:1px solid;
+  margin-bottom:8px;margin-top:14px;opacity:.85;grid-column:1/-1;}
+.school-group-hdr:first-child{margin-top:0;}
+
+/* CATALOGUE */
+.catalogue-grid{display:grid;grid-template-columns:1fr;gap:10px;}
+@media(min-width:480px){.catalogue-grid{grid-template-columns:repeat(2,1fr);}}
+@media(min-width:760px){.catalogue-grid{grid-template-columns:repeat(3,1fr);}}
+
+/* MODALS */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:500;
+  align-items:center;justify-content:center;padding:16px;}
+.modal-overlay.open{display:flex;}
+.modal{background:rgba(12,6,0,.98);border:1px solid var(--parchment);border-radius:10px;
+  padding:22px;width:100%;max-width:460px;max-height:90vh;overflow-y:auto;position:relative;animation:modalIn .22s ease;}
+.modal::-webkit-scrollbar{width:4px;}
+.modal::-webkit-scrollbar-thumb{background:var(--parchment);}
+@keyframes modalIn{from{opacity:0;transform:scale(.96) translateY(6px)}to{opacity:1;transform:none}}
+.modal::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:.5;border-radius:10px 10px 0 0;}
+.modal-title{font-family:'Uncial Antiqua',serif;font-size:17px;color:var(--gold-lt);margin-bottom:16px;}
+.modal-close{position:absolute;top:14px;right:16px;background:none;border:none;color:var(--aged);cursor:pointer;font-size:18px;line-height:1;}
+.form-row{margin-bottom:12px;}
+.form-label{display:block;font-size:11px;color:var(--aged);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:4px;}
+.form-input,.form-select,.form-textarea{width:100%;background:rgba(28,12,0,.75);border:1px solid var(--parchment);
+  border-radius:5px;color:var(--ivory);font-family:'Crimson Pro',serif;font-size:15px;padding:7px 10px;outline:none;transition:border-color .18s;}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--gold);}
+.form-textarea{resize:vertical;min-height:70px;}
+.form-select option{background:#140800;}
+
+.btn-primary{background:rgba(201,144,12,.14);border:1px solid var(--gold);color:var(--gold-lt);
+  font-family:'Crimson Pro',serif;font-weight:600;font-size:14px;padding:8px 18px;border-radius:6px;cursor:pointer;transition:all .18s;}
+.btn-primary:hover{background:rgba(201,144,12,.26);}
+.btn-primary:disabled{opacity:.3;cursor:not-allowed;}
+.btn-secondary{background:rgba(60,30,10,.4);border:1px solid var(--parchment);color:var(--faded);
+  font-family:'Crimson Pro',serif;font-weight:500;font-size:14px;padding:8px 18px;border-radius:6px;cursor:pointer;transition:all .18s;}
+.btn-secondary:hover{border-color:var(--faded);}
+.btn-danger{background:rgba(139,26,26,.18);border:1px solid var(--crimson);color:#e8a0a0;
+  font-family:'Crimson Pro',serif;font-weight:600;font-size:14px;padding:8px 18px;border-radius:6px;cursor:pointer;transition:all .18s;}
+.btn-danger:hover{background:rgba(139,26,26,.32);}
+
+/* REST */
+.rest-options{display:flex;gap:12px;margin-bottom:16px;}
+.rest-opt{flex:1;background:rgba(28,12,0,.7);border:1px solid var(--parchment);border-radius:8px;
+  padding:16px 8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;transition:all .18s;color:inherit;}
+.rest-opt:hover,.rest-opt.chosen{border-color:var(--gold);background:rgba(201,144,12,.08);}
+.rest-opt-icon{font-size:26px;}
+.rest-opt-label{font-family:'Uncial Antiqua',serif;font-size:12px;color:var(--gold-lt);}
+.rest-opt-sub{font-size:11px;color:var(--aged);font-style:italic;text-align:center;}
+.rest-trait-row{display:flex;align-items:center;justify-content:space-between;
+  padding:8px 12px;border:1px solid var(--parchment);border-radius:6px;margin-bottom:7px;cursor:pointer;transition:border-color .15s;font-size:14px;}
+.rest-trait-row:hover,.rest-trait-row.chosen{border-color:var(--gold);}
+.rest-swap-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.rest-swap-lbl{font-size:13px;color:var(--faded);min-width:120px;}
+
+/* DICE */
+.dice-modal{max-width:340px;text-align:center;}
+.dice-fml{font-size:14px;color:var(--aged);margin-bottom:14px;font-style:italic;}
+.dice-row{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-bottom:16px;}
+.die-face{width:54px;height:54px;border:2px solid var(--gold);border-radius:8px;
+  background:rgba(28,12,0,.95);display:flex;align-items:center;justify-content:center;
+  font-family:'Uncial Antiqua',serif;font-size:22px;color:var(--gold-lt);box-shadow:0 0 10px rgba(201,144,12,.28);}
+.die-face.rolling{animation:tumble .09s linear infinite;}
+@keyframes tumble{0%{transform:rotate(-4deg) scale(1.06)}50%{transform:rotate(4deg) scale(.96)}100%{transform:rotate(-4deg) scale(1.06)}}
+.dice-total-num{font-family:'Uncial Antiqua',serif;font-size:52px;color:var(--gold-lt);
+  display:block;line-height:1;text-shadow:0 0 24px rgba(201,144,12,.55);margin-bottom:4px;}
+.dice-total-lbl{font-size:11px;color:var(--aged);text-transform:uppercase;letter-spacing:2px;display:block;margin-bottom:16px;}
+
+/* CROP */
+.crop-modal{max-width:380px;}
+.crop-stage{position:relative;width:100%;background:#000;border:1px solid var(--parchment);
+  border-radius:6px;overflow:hidden;margin-bottom:14px;user-select:none;touch-action:none;}
+.crop-stage img{display:block;width:100%;height:auto;pointer-events:none;}
+.crop-box{position:absolute;border:2px solid var(--gold);box-shadow:0 0 0 9999px rgba(0,0,0,.55);cursor:move;}
+.crop-handle{position:absolute;width:12px;height:12px;background:var(--gold);border-radius:2px;}
+.crop-handle.tl{top:-6px;left:-6px;cursor:nwse-resize;}
+.crop-handle.tr{top:-6px;right:-6px;cursor:nesw-resize;}
+.crop-handle.bl{bottom:-6px;left:-6px;cursor:nesw-resize;}
+.crop-handle.br{bottom:-6px;right:-6px;cursor:nwse-resize;}
+
+/* NOTIF */
+#notif{position:fixed;bottom:18px;right:-300px;background:rgba(12,6,0,.96);
+  border:1px solid var(--parchment);border-left:3px solid var(--gold);border-radius:8px;
+  padding:9px 14px;font-family:'Crimson Pro',serif;font-size:14px;color:var(--highlight);
+  z-index:700;max-width:270px;transition:right .3s cubic-bezier(.4,0,.2,1);}
+#notif.show{right:16px;}
+
+/* DRAWER CONTENT */
+.section-label{font-family:'Uncial Antiqua',serif;font-size:10px;color:var(--aged);
+  text-transform:uppercase;letter-spacing:2px;margin:14px 0 8px;padding-bottom:5px;border-bottom:1px solid var(--parchment);}
+.toggle-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.toggle-row input[type=checkbox]{width:16px;height:16px;accent-color:var(--gold);cursor:pointer;}
+.toggle-lbl{font-size:14px;color:var(--faded);}
+.edit-trait-row{display:flex;align-items:center;justify-content:space-between;
+  padding:7px 0;border-bottom:1px solid rgba(60,36,16,.4);font-size:14px;}
+.edit-sm-btn{font-family:'Crimson Pro',serif;font-size:12px;padding:3px 9px;border-radius:4px;
+  cursor:pointer;background:none;border:1px solid var(--parchment);color:var(--faded);transition:all .15s;}
+.edit-sm-btn:hover{border-color:var(--gold);color:var(--gold-lt);}
+.edit-sm-btn.del{border-color:#5a2020;color:#e8a0a0;}
+.edit-sm-btn.del:hover{background:rgba(139,26,26,.2);}
+.ornament-div{text-align:center;color:var(--parchment);font-size:13px;margin:6px 0 12px;letter-spacing:6px;opacity:.55;}
+.rules-h1{font-family:'Uncial Antiqua',serif;font-size:15px;color:var(--gold-lt);margin:10px 0 7px;}
+.rules-h2{font-family:'Uncial Antiqua',serif;font-size:12px;color:var(--gold);margin:12px 0 5px;border-bottom:1px solid var(--parchment);padding-bottom:3px;}
+.rules-h3{font-size:14px;color:var(--faded);margin:7px 0 3px;font-style:italic;font-weight:600;}
+.rules-p{font-size:14px;color:var(--faded);margin-bottom:6px;line-height:1.5;}
+.rules-li{font-size:14px;color:var(--faded);margin-bottom:4px;padding-left:12px;position:relative;line-height:1.4;}
+.rules-li::before{content:'·';position:absolute;left:0;color:var(--gold);}
+
+/* file upload button style */
+.file-upload-btn{display:flex;align-items:center;gap:8px;background:rgba(201,144,12,.1);
+  border:1px dashed var(--gold);color:var(--gold-lt);font-family:'Crimson Pro',serif;font-weight:600;
+  font-size:14px;padding:10px 18px;border-radius:6px;cursor:pointer;transition:all .18s;width:100%;justify-content:center;}
+.file-upload-btn:hover{background:rgba(201,144,12,.2);}
+</style>
+</head>
+<body>
+<canvas id="bg-canvas"></canvas>
+<div class="grain"></div>
+<div class="vignette"></div>
+<div id="app">
+
+<header>
+  <div class="header-title">
+    <span class="title-main">Boi's Chimeric Catalogue</span>
+    <span class="title-sub">Trait &amp; Synergy Tracker</span>
+  </div>
+  <div class="header-actions">
+    <button class="btn-icon" id="btn-lock" title="Toggle Page Lock">🔓</button>
+    <button class="btn-icon" id="rest-btn" title="Take a Rest">⛺</button>
+    <button class="btn-icon" id="menu-btn" title="Menu">☰</button>
+  </div>
+</header>
+
+<div id="lock-banner">🔒 Page is locked — click here to unlock<span>Editing is disabled</span></div>
+<div id="drawer-overlay"></div>
+
+<div id="drawer">
+  <div class="drawer-hd">
+    <span class="drawer-hd-title">Catalogue Menu</span>
+    <button class="drawer-close" id="drawer-close">✕</button>
+  </div>
+  <nav class="drawer-nav">
+    <button class="drawer-nav-btn active" data-panel="rules">📖 Rules &amp; Guide</button>
+    <button class="drawer-nav-btn" data-panel="settings">⚙️ Settings</button>
+    <button class="drawer-nav-btn" data-panel="saveload">💾 Save / Load</button>
+    <button class="drawer-nav-btn" data-panel="observations">🔬 Observations</button>
+  </nav>
+  <div class="drawer-body" id="drawer-body"></div>
+</div>
+
+<main>
+  <!-- HERO -->
+  <div class="hero-panel" id="hero-panel"></div>
+
+  <!-- ACTION BAR -->
+  <div class="action-bar">
+    <button class="btn-action" id="btn-d20"><span class="btn-action-icon">⚀</span><span class="btn-action-label">Roll d20</span></button>
+    <button class="btn-action" id="btn-unlock-trait"><span class="btn-action-icon">🔐</span><span class="btn-action-label">Unlock Trait</span></button>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="pool">Pool<span class="tab-count" id="tab-pool-count"></span></button>
+    <button class="tab-btn" data-tab="catalogue">Catalogue<span class="tab-count" id="tab-cat-count"></span></button>
+    <button class="tab-btn" data-tab="experiments">Experiments</button>
+  </div>
+
+  <!-- POOL TAB -->
+  <div class="tab-panel active" id="tab-pool">
+    <div class="epistasis-section" id="epistasis-section" style="display:none">
+      <div class="sec-head" style="margin-bottom:10px">
+        <span class="sec-title">⚗️ Epistasis</span>
+        <div class="sec-rule"></div>
+      </div>
+      <div id="epistasis-banners"></div>
+    </div>
+    <div class="pool-wrap" id="pool-wrap">
+      <div class="pool-grid" id="pool-grid"></div>
+      <svg id="epistasis-svg" aria-hidden="true"></svg>
+    </div>
+  </div>
+
+  <!-- CATALOGUE TAB -->
+  <div class="tab-panel" id="tab-catalogue">
+    <div class="catalogue-grid" id="catalogue-grid"></div>
+  </div>
+
+  <!-- EXPERIMENTS TAB -->
+  <div class="tab-panel" id="tab-experiments">
+    <div id="experiments-body"></div>
+  </div>
+</main>
+</div>
+
+<!-- D20 MODAL -->
+<div class="modal-overlay" id="d20-overlay" style="z-index:510">
+  <div class="modal d20-modal" id="d20-modal-inner">
+    <div class="d20-shape" id="d20-shape">
+      <svg class="d20-svg" id="d20-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- D20 polygon -->
+        <polygon points="50,4 96,28 96,72 50,96 4,72 4,28" stroke="#c9900c" stroke-width="1.5" fill="rgba(20,8,0,0.92)"/>
+        <polygon points="50,4 96,28 50,50" stroke="#9b7450" stroke-width="0.8" fill="rgba(201,144,12,0.08)"/>
+        <polygon points="96,28 96,72 50,50" stroke="#9b7450" stroke-width="0.8" fill="rgba(201,144,12,0.05)"/>
+        <polygon points="96,72 50,96 50,50" stroke="#9b7450" stroke-width="0.8" fill="rgba(201,144,12,0.08)"/>
+        <polygon points="50,96 4,72 50,50" stroke="#9b7450" stroke-width="0.8" fill="rgba(201,144,12,0.05)"/>
+        <polygon points="4,72 4,28 50,50" stroke="#9b7450" stroke-width="0.8" fill="rgba(201,144,12,0.08)"/>
+        <polygon points="4,28 50,4 50,50" stroke="#9b7450" stroke-width="0.8" fill="rgba(201,144,12,0.05)"/>
+      </svg>
+      <span class="d20-result" id="d20-result">?</span>
+    </div>
+    <span class="d20-label" id="d20-label">Roll Result</span>
+    <p class="d20-dismiss-hint">Tap anywhere to dismiss</p>
+  </div>
+</div>
+
+<!-- UNLOCK TRAIT MODAL -->
+<div class="modal-overlay" id="unlock-modal-overlay" style="z-index:510">
+  <div class="modal unlock-modal" id="unlock-modal-inner">
+    <button class="modal-close" id="unlock-modal-close">✕</button>
+    <div class="modal-title">🔐 Enter Unlock Code</div>
+    <div class="unlock-input-row">
+      <input class="form-input" id="um-code-inp" placeholder="CHM-XXXX-XXXX" maxlength="13" style="flex:1;letter-spacing:1px;text-transform:uppercase">
+      <button class="btn-unlock" id="um-apply-btn">Apply</button>
+    </div>
+    <p style="font-size:12px;color:var(--aged);font-style:italic">Codes are provided by your GM. Re-entering a code locks a Trait.</p>
+    <div id="unlock-result-area"></div>
+  </div>
+</div>
+
+<!-- DICE MODAL -->
+<div class="modal-overlay" id="dice-overlay">
+  <div class="modal dice-modal">
+    <button class="modal-close" id="dice-close">✕</button>
+    <div class="modal-title" id="dice-trait-name"></div>
+    <div class="dice-fml" id="dice-fml"></div>
+    <div class="dice-row" id="dice-faces"></div>
+    <span class="dice-total-num" id="dice-total">?</span>
+    <span class="dice-total-lbl" id="dice-lbl">Total</span>
+    <button class="btn-primary" id="dice-dismiss">Dismiss</button>
+  </div>
+</div>
+
+<!-- REST MODAL -->
+<div class="modal-overlay" id="rest-overlay">
+  <div class="modal">
+    <button class="modal-close" id="rest-close">✕</button>
+    <div class="modal-title">⛺ Take a Rest</div>
+    <div id="rest-body"></div>
+  </div>
+</div>
+
+<!-- EDIT TRAIT MODAL -->
+<div class="modal-overlay" id="edit-overlay">
+  <div class="modal">
+    <button class="modal-close" id="edit-close">✕</button>
+    <div class="modal-title" id="edit-modal-title">New Trait</div>
+    <div id="edit-modal-body"></div>
+  </div>
+</div>
+
+<!-- PROMPT MODAL -->
+<div class="modal-overlay" id="prompt-overlay" style="z-index:520">
+  <div class="modal" style="max-width:340px">
+    <div class="modal-title" id="prompt-title"></div>
+    <p id="prompt-body" style="font-size:14px;color:var(--faded);margin-bottom:14px;line-height:1.5"></p>
+    <input class="form-input" id="prompt-input" style="margin-bottom:14px">
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button class="btn-secondary" id="prompt-cancel">Cancel</button>
+      <button class="btn-primary" id="prompt-ok">OK</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div class="modal-overlay" id="confirm-overlay">
+  <div class="modal" style="max-width:340px;text-align:center">
+    <div class="modal-title" id="confirm-title" style="margin-bottom:10px"></div>
+    <p id="confirm-body" style="font-size:14px;color:var(--faded);margin-bottom:20px;line-height:1.5"></p>
+    <div style="display:flex;gap:10px;justify-content:center">
+      <button class="btn-secondary" id="confirm-cancel">Cancel</button>
+      <button class="btn-danger" id="confirm-ok">Remove</button>
+    </div>
+  </div>
+</div>
+
+<!-- POOL SWAP MODAL -->
+<div class="modal-overlay" id="pool-swap-overlay">
+  <div class="modal" style="max-width:400px">
+    <button class="modal-close" id="pool-swap-close">✕</button>
+    <div class="modal-title">Pool is Full</div>
+    <p style="font-size:14px;color:var(--aged);font-style:italic;margin-bottom:16px">Choose a Trait to replace:</p>
+    <div id="pool-swap-list" style="display:flex;flex-direction:column;gap:8px"></div>
+  </div>
+</div>
+
+<!-- PLANAR CONVERGENCE MODAL -->
+<div class="modal-overlay" id="planar-overlay">
+  <div class="modal" style="max-width:400px">
+    <button class="modal-close" id="planar-close">✕</button>
+    <div class="modal-title">⟡ Planar Convergence</div>
+    <p style="font-size:14px;color:var(--aged);font-style:italic;margin-bottom:16px">Choose a Conjuration Trait to summon into a phantom slot:</p>
+    <div id="planar-list" style="display:flex;flex-direction:column;gap:7px;max-height:50vh;overflow-y:auto;padding-right:4px"></div>
+  </div>
+</div>
+
+<!-- POOL SLOT PICKER MODAL -->
+<div class="modal-overlay" id="pool-picker-overlay">
+  <div class="modal" style="max-width:400px">
+    <button class="modal-close" id="pool-picker-close">✕</button>
+    <div class="modal-title">Add Trait to Pool</div>
+    <p style="font-size:13px;color:var(--aged);font-style:italic;margin-bottom:14px">Choose a Trait to place in this slot:</p>
+    <div id="pool-picker-list" style="display:flex;flex-direction:column;gap:7px;max-height:55vh;overflow-y:auto;padding-right:4px"></div>
+  </div>
+</div>
+
+<!-- PORTRAIT MODAL -->
+<div class="modal-overlay" id="portrait-overlay">
+  <div class="modal" style="max-width:340px">
+    <button class="modal-close" id="portrait-modal-close">✕</button>
+    <div class="modal-title">Portrait</div>
+    <div style="text-align:center;margin-bottom:18px">
+      <img id="portrait-preview" style="width:100px;height:100px;border-radius:8px;object-fit:cover;border:2px solid var(--parchment);" src="" alt="Portrait">
+    </div>
+    <div class="portrait-modal-opts">
+      <button class="portrait-modal-btn" id="pmb-crop">
+        <span class="portrait-modal-icon">✂️</span>
+        <div><strong style="color:var(--highlight)">Crop</strong><br><span style="font-size:12px;font-style:italic">Adjust the crop on the current image</span></div>
+      </button>
+      <button class="portrait-modal-btn" id="pmb-replace">
+        <span class="portrait-modal-icon">🖼️</span>
+        <div><strong style="color:var(--highlight)">Replace</strong><br><span style="font-size:12px;font-style:italic">Upload a new image</span></div>
+      </button>
+      <button class="portrait-modal-btn danger" id="pmb-remove">
+        <span class="portrait-modal-icon">🗑️</span>
+        <div><strong style="color:#e8a0a0">Remove</strong><br><span style="font-size:12px;font-style:italic">Clear the portrait</span></div>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- CROP MODAL -->
+<div class="modal-overlay" id="crop-overlay">
+  <div class="modal crop-modal">
+    <button class="modal-close" id="crop-close">✕</button>
+    <div class="modal-title">Crop Portrait</div>
+    <div class="crop-stage" id="crop-stage">
+      <img id="crop-img" src="" alt="">
+      <div class="crop-box" id="crop-box">
+        <div class="crop-handle tl" data-h="tl"></div>
+        <div class="crop-handle tr" data-h="tr"></div>
+        <div class="crop-handle bl" data-h="bl"></div>
+        <div class="crop-handle br" data-h="br"></div>
+      </div>
+    </div>
+    <p style="font-size:13px;color:var(--aged);margin-bottom:14px;font-style:italic">Drag to reposition · Drag corners to resize (1:1 locked)</p>
+    <div style="display:flex;gap:10px">
+      <button class="btn-secondary" id="crop-cancel">Cancel</button>
+      <button class="btn-primary" id="crop-confirm">Apply Portrait</button>
+    </div>
+  </div>
+</div>
+
+<div id="notif"></div>
+
+<script>
+// ════════════════════════════════════════════════════════
+// DATA
+// ════════════════════════════════════════════════════════
+const SK='chimeric_catalogue';
+const DB_NAME='ChimericDB';
+const DB_VER=1;
+let _db=null;
+
+function openDB(){
+  return new Promise((resolve,reject)=>{
+    if(_db){resolve(_db);return;}
+    const req=indexedDB.open(DB_NAME,DB_VER);
+    req.onupgradeneeded=e=>{
+      const db=e.target.result;
+      if(!db.objectStoreNames.contains('store')) db.createObjectStore('store');
+    };
+    req.onsuccess=e=>{_db=e.target.result;resolve(_db);};
+    req.onerror=e=>reject(e.target.error);
+  });
+}
+
+function dbGet(key){
+  return openDB().then(db=>new Promise((resolve,reject)=>{
+    const tx=db.transaction('store','readonly');
+    const req=tx.objectStore('store').get(key);
+    req.onsuccess=()=>resolve(req.result);
+    req.onerror=e=>reject(e.target.error);
+  }));
+}
+
+function dbSet(key,val){
+  return openDB().then(db=>new Promise((resolve,reject)=>{
+    const tx=db.transaction('store','readwrite');
+    const req=tx.objectStore('store').put(val,key);
+    req.onsuccess=()=>resolve();
+    req.onerror=e=>reject(e.target.error);
+  }));
+}
+
+function dbDel(key){
+  return openDB().then(db=>new Promise((resolve,reject)=>{
+    const tx=db.transaction('store','readwrite');
+    const req=tx.objectStore('store').delete(key);
+    req.onsuccess=()=>resolve();
+    req.onerror=e=>reject(e.target.error);
+  }));
+}
+const FIXED_TYPES=[
+  {id:'abjuration',  label:'Abjuration',  icon:'🛡️',color:'#6a8fbf',bg:'#080e18'},
+  {id:'conjuration', label:'Conjuration', icon:'🌀',color:'#4a9e8e',bg:'#041210'},
+  {id:'divination',  label:'Divination',  icon:'🔮',color:'#c9a020',bg:'#181200'},
+  {id:'enchantment', label:'Enchantment', icon:'💫',color:'#b05080',bg:'#180810'},
+  {id:'evocation',   label:'Evocation',   icon:'🔥',color:'#c05020',bg:'#180800'},
+  {id:'illusion',    label:'Illusion',    icon:'🪞',color:'#8070c0',bg:'#0c0a18'},
+  {id:'necromancy',  label:'Necromancy',  icon:'💀',color:'#7a9a5a',bg:'#081008'},
+  {id:'transmutation',label:'Transmutation',icon:'⚗️',color:'#b07830',bg:'#150e00'},
+];
+const RARITY=['Common','Uncommon','Rare','Very Rare','Legendary'];
+const RARITY_CLR=['#7a7a7a','#5a9c5a','#6a7fbd','#7a5abd','#d4a020'];
+
+const DEFAULT_SYNERGIES=[
+  {id:'ep_abj', name:'Iron Covenant',
+    triggers:['t5','t6'],
+    triggerCount:2,
+    flavor:'The ward becomes flesh. Nothing shall pass.',
+    bonus:'Once per long rest: you cannot be reduced below 1 HP by a single strike. Mark as triggered when it activates.',
+    triggerType:'passive', spent:false, discovered:false},
+  {id:'ep_con', name:'Planar Convergence',
+    triggers:['t8'], triggerAny:true, triggerAnySchool:'conjuration',
+    triggerCount:2,
+    flavor:'The planes fold. Something answers the call.',
+    bonus:'Once per long rest: pull any Conjuration Trait from your Catalogue into a free 4th Pool slot until your next Long Rest.',
+    triggerType:'planar', spent:false, phantomSlot:null, discovered:false},
+  {id:'ep_div', name:'The Unveiled Thread',
+    triggers:['d1','d3'],
+    triggerCount:2,
+    flavor:'All paths converge on this moment of clarity.',
+    bonus:'Once per long rest: ask your DM one yes/no question. They must answer truthfully.',
+    triggerType:'use', spent:false, discovered:false},
+  {id:'ep_enc', name:'Sovereign Gaze',
+    triggers:['t2','e1'],
+    triggerCount:2,
+    flavor:'Your will supersedes their own. Resistance is a forgotten concept.',
+    bonus:'Once per long rest: one creature you can see is charmed by you for up to one hour (no saving throw). The effect ends if you or your allies harm them.',
+    triggerType:'use', spent:false, discovered:false},
+  {id:'ep_evo', name:'Cascade',
+    triggers:['t9','ev1'],
+    triggerCount:2,
+    flavor:'The force does not stop. It never stops.',
+    bonus:'Once per long rest: your next damage roll applies to all creatures within 10 ft of the primary target.',
+    triggerType:'use', spent:false, discovered:false},
+  {id:'ep_ill', name:'Fractured Mirror',
+    triggers:['i1','i2'],
+    triggerCount:2,
+    flavor:'Which one is real? Even you are no longer certain.',
+    bonus:'Once per long rest: three illusory duplicates of you appear and mimic your movements. Each disappears upon physical interaction. All duplicates fade after one hour.',
+    triggerType:'passive', spent:false, discovered:false},
+  {id:'ep_nec', name:'Sanguine Debt',
+    triggers:['n1','n3'],
+    triggerCount:2,
+    flavor:'Life is merely energy. Energy cannot be destroyed.',
+    bonus:'Once per long rest: regain HP equal to the total of your next damage roll.',
+    triggerType:'use', spent:false, discovered:false},
+  {id:'ep_tra', name:'Crucible State',
+    triggers:['t1','tr1'],
+    triggerCount:2,
+    flavor:'Form is mutable. Purpose is absolute.',
+    bonus:'Once per long rest: immediately swap any one Pool Trait for any Transmutation Trait in your Catalogue — no rest required.',
+    triggerType:'swap', spent:false, discovered:false},
+];
+
+const DEFAULT_TRAITS=[
+  {id:'t1',unlocked:false,name:'Pounce',     type:'transmutation',uses:3,maxUses:3,rarity:0,activations:0,favourite:false,addedAt:1700000001000,ability:'Your body transmutes into raw predatory motion. Leap up to 20 ft and make a melee attack. On hit, the target must succeed on a DC 13 STR save or be knocked prone.',diceFormula:'1d6',diceLabel:'Bonus Dmg'},
+  {id:'t2',unlocked:false,name:'Hex Bolt',   type:'enchantment',  uses:2,maxUses:2,rarity:1,activations:0,favourite:false,addedAt:1700000002000,ability:'Lace a creature\u2019s mind with a debilitating hex within 60 ft. The target takes 2d8 psychic damage and has disadvantage on its next saving throw.',diceFormula:'2d8',diceLabel:'Psychic Dmg'},
+  {id:'t3',unlocked:false,name:'Hallowed Ground',type:'conjuration',uses:2,maxUses:2,rarity:1,activations:0,favourite:false,addedAt:1700000003000,ability:'Conjure surface material from the Elemental Plane of Radiance beneath your feet. The raw energy damages any creature in the Material Plane exposed to it within a 10-ft radius — each must make a WIS save or take 2d6 Radiant damage (half on success).',diceFormula:'2d6',diceLabel:'Radiant Dmg'},
+  {id:'t4',unlocked:false,name:'Thornwall',  type:'conjuration',  uses:2,maxUses:2,rarity:0,activations:0,favourite:false,addedAt:1700000004000,ability:'Conjure a wall of thorns in a 10-ft line. Creatures passing through take 2d4 piercing damage and are slowed.',diceFormula:'2d4',diceLabel:'Piercing Dmg'},
+  {id:'t5',unlocked:false,name:'Null Grasp', type:'abjuration',   uses:2,maxUses:2,rarity:3,activations:0,favourite:false,addedAt:1700000005000,ability:'Project a nullifying force that binds a creature within 30 ft. It must succeed on a STR save or be pulled 10 ft closer and restrained until the end of its next turn.',diceFormula:null,diceLabel:null},
+  {id:'t6',unlocked:false,name:'Radiant Vow',type:'abjuration',   uses:3,maxUses:3,rarity:1,activations:0,favourite:false,addedAt:1700000006000,ability:'Inscribe a ward of protection. One ally within 30 ft gains +2 AC and advantage on death saving throws until your next rest.',diceFormula:null,diceLabel:null},
+  {id:'t7',unlocked:true,name:'Homunculus', type:'conjuration',  uses:1,maxUses:1,rarity:3,activations:0,favourite:false,addedAt:1700000007000,ability:'Summon a physical clone of yourself from conjured matter. The Homunculus cannot attack or speak, but may take any other action you could take. It persists until dismissed, destroyed, or until your next Long Rest.',diceFormula:null,diceLabel:null},
+  {id:'t8',unlocked:true,name:'Blink',      type:'conjuration',  uses:2,maxUses:2,rarity:2,activations:0,favourite:false,addedAt:1700000008000,ability:'Step sideways through the planes. Teleport up to 30 ft to an unoccupied space you can see, passing through objects and creatures while in transit.',diceFormula:null,diceLabel:null},
+  {id:'t9',unlocked:true,name:'Combust',    type:'evocation',    uses:2,maxUses:2,rarity:1,activations:0,favourite:false,addedAt:1700000009000,ability:'Evoke a burst of volatile fire up to 30 ft (long range 60 ft), detonating in a 5-ft radius. Each creature in the blast makes a DEX save or takes 2d6 Fire damage (half on success).',diceFormula:'2d6',diceLabel:'Fire Dmg'},
+  // ── Abjuration ─────────────────────────────────────────────
+  {id:'a1',unlocked:false,name:'Ward of Retribution',type:'abjuration',  uses:2,maxUses:2,rarity:1,activations:0,favourite:false,addedAt:1700000010000,ability:'When a creature hits you with a melee attack, your ward erupts — it takes 1d6 force damage. No action required; activate to prime the ward until your next rest.',diceFormula:'1d6',diceLabel:'Force Dmg'},
+  {id:'a2',unlocked:false,name:'Dispel Surge',        type:'abjuration',  uses:1,maxUses:1,rarity:2,activations:0,favourite:false,addedAt:1700000011000,ability:'End one spell or magical effect of your choice on a creature or object within 60 ft. No check required for effects of 3rd level or lower.',diceFormula:null,diceLabel:null},
+  {id:'a3',unlocked:false,name:'Aegis Shell',         type:'abjuration',  uses:3,maxUses:3,rarity:0,activations:0,favourite:false,addedAt:1700000012000,ability:'Grant yourself or one ally within 30 ft a shell of abjurative force, providing 1d8+2 temporary HP until your next rest.',diceFormula:'1d8',diceLabel:'Temp HP'},
+  // ── Conjuration ────────────────────────────────────────────
+  {id:'c1',unlocked:false,name:'Phase Anchor',        type:'conjuration', uses:2,maxUses:2,rarity:1,activations:0,favourite:false,addedAt:1700000013000,ability:'Mark a point you can see. As a bonus action at any time before your next rest, you may teleport back to that exact spot.',diceFormula:null,diceLabel:null},
+  {id:'c2',unlocked:false,name:'Interpose',type:'conjuration',uses:2,maxUses:2,rarity:0,activations:0,favourite:false,addedAt:1700000014000,ability:'Conjure a dense wall of translucent force (10 ft wide, 10 ft tall) at a point within 60 ft. It blocks movement and projectiles but not sight. It lasts until the start of your next turn or until destroyed (AC 14, 20 HP).',diceFormula:null,diceLabel:null},
+
+  {id:'c3',unlocked:false,name:'Misty Escape',        type:'conjuration', uses:1,maxUses:1,rarity:2,activations:0,favourite:false,addedAt:1700000015000,ability:'As a reaction when you take damage, teleport up to 60 ft to an unoccupied space you can see, halving the triggering damage.',diceFormula:null,diceLabel:null},
+  // ── Divination ─────────────────────────────────────────────
+  {id:'d1',unlocked:false,name:'Fated Strike',        type:'divination',  uses:3,maxUses:3,rarity:0,activations:0,favourite:false,addedAt:1700000016000,ability:'Before making an attack roll or ability check, you may peer ahead and add 1d4 to the result. Declare before rolling.',diceFormula:'1d4',diceLabel:'Bonus'},
+  {id:'d2',unlocked:false,name:'Read the Weave',      type:'divination',  uses:2,maxUses:2,rarity:1,activations:0,favourite:false,addedAt:1700000017000,ability:'Perceive the magical aura of all creatures and objects within 30 ft for 10 minutes, learning their school of magic and any active enchantments.',diceFormula:null,diceLabel:null},
+  {id:'d3',unlocked:false,name:'Foretell Doom',       type:'divination',  uses:1,maxUses:1,rarity:2,activations:0,favourite:false,addedAt:1700000018000,ability:'Name a creature you can see. The next attack roll, ability check, or saving throw that creature makes is made with disadvantage. No save.',diceFormula:null,diceLabel:null},
+  // ── Enchantment ────────────────────────────────────────────
+  {id:'e1',unlocked:false,name:'Compel Truth',        type:'enchantment', uses:2,maxUses:2,rarity:1,activations:0,favourite:false,addedAt:1700000019000,ability:'One creature within 30 ft must succeed on a WIS save or be incapable of speaking a deliberate lie for 10 minutes.',diceFormula:null,diceLabel:null},
+  {id:'e2',unlocked:false,name:'Glamour Veil',        type:'enchantment', uses:3,maxUses:3,rarity:0,activations:0,favourite:false,addedAt:1700000020000,ability:'Project a convincing illusion of calm authority. You have advantage on Persuasion and Deception checks for 1 hour.',diceFormula:null,diceLabel:null},
+  {id:'e3',unlocked:false,name:'Mind Spike',          type:'enchantment', uses:1,maxUses:1,rarity:2,activations:0,favourite:false,addedAt:1700000021000,ability:'Drive a needle of psychic pain into a creature’s mind within 60 ft. It takes 3d6 psychic damage and must succeed on a CON save or immediately lose concentration on any spell.',diceFormula:'3d6',diceLabel:'Psychic Dmg'},
+  // ── Evocation ──────────────────────────────────────────────
+  {id:'ev1',unlocked:false,name:'Arc Flash',          type:'evocation',   uses:3,maxUses:3,rarity:0,activations:0,favourite:false,addedAt:1700000022000,ability:'Strike one creature within 30 ft with a bolt of lightning. The target must make a DEX saving throw or take 1d10 lightning damage (half on success).',diceFormula:'1d10',diceLabel:'Lightning Dmg'},
+  {id:'ev2',unlocked:false,name:'Concussive Wave',    type:'evocation',   uses:2,maxUses:2,rarity:1,activations:0,favourite:false,addedAt:1700000023000,ability:'Release a wave of pure force in a 15-ft cone. Creatures in the area must succeed on a STR save or take 2d6 force damage and be pushed 10 ft.',diceFormula:'2d6',diceLabel:'Force Dmg'},
+  {id:'ev3',unlocked:false,name:'Cinder Bloom',       type:'evocation',   uses:1,maxUses:1,rarity:2,activations:0,favourite:false,addedAt:1700000024000,ability:'Plant a slow-burning seed of fire at a point within 60 ft. It detonates at the start of your next turn; all creatures within 10 ft take 4d6 fire damage (DEX save for half).',diceFormula:'4d6',diceLabel:'Fire Dmg'},
+  // ── Illusion ───────────────────────────────────────────────
+  {id:'i1',unlocked:false,name:'Terrifying Visage',   type:'illusion',    uses:2,maxUses:2,rarity:0,activations:0,favourite:false,addedAt:1700000025000,ability:'Warp your appearance into something deeply, personally horrifying to one creature within 30 ft. It must succeed on a WIS save or become Frightened of you for 1 minute. A Frightened creature can repeat the save at the end of each of its turns.',diceFormula:null,diceLabel:null},
+  {id:'i2',unlocked:false,name:'Veil of Mist',        type:'illusion',    uses:2,maxUses:2,rarity:1,activations:0,favourite:false,addedAt:1700000026000,ability:'Shroud yourself in clinging obscuring mist. You are lightly obscured and have advantage on Stealth checks for 10 minutes.',diceFormula:null,diceLabel:null},
+  {id:'i3',unlocked:false,name:'False Memory',        type:'illusion',    uses:1,maxUses:1,rarity:2,activations:0,favourite:false,addedAt:1700000027000,ability:'One creature within 30 ft must succeed on a WIS save or believe a brief false memory you implant as though it truly happened.',diceFormula:null,diceLabel:null},
+  // ── Necromancy ─────────────────────────────────────────────
+  {id:'n1',unlocked:false,name:'Grave Chill',         type:'necromancy',  uses:3,maxUses:3,rarity:0,activations:0,favourite:false,addedAt:1700000028000,ability:'Drain vitality with a touch. The target takes 1d6 necrotic damage and you regain HP equal to half the damage dealt.',diceFormula:'1d6',diceLabel:'Necrotic Dmg'},
+  {id:'n2',unlocked:false,name:'Animate Husk',        type:'necromancy',  uses:1,maxUses:1,rarity:1,activations:0,favourite:false,addedAt:1700000029000,ability:'Animate a corpse within 10 ft as a simple undead servant. It acts on your turn, cannot attack, and dissolves at dawn or Long Rest.',diceFormula:null,diceLabel:null},
+  {id:'n3',unlocked:false,name:'Death Knell',         type:'necromancy',  uses:1,maxUses:1,rarity:2,activations:0,favourite:false,addedAt:1700000030000,ability:'Point at a creature below half its maximum HP within 60 ft. It must succeed on a CON save or immediately drop to 0 HP.',diceFormula:null,diceLabel:null},
+  // ── Transmutation ──────────────────────────────────────────
+  {id:'tr1',unlocked:false,name:'Iron Skin',          type:'transmutation',uses:3,maxUses:3,rarity:0,activations:0,favourite:false,addedAt:1700000031000,ability:'Your skin transmutes to iron-like resilience. You gain +2 AC and resistance to bludgeoning damage until the end of your next turn.',diceFormula:null,diceLabel:null},
+  {id:'tr2',unlocked:false,name:'Accelerate',         type:'transmutation',uses:2,maxUses:2,rarity:1,activations:0,favourite:false,addedAt:1700000032000,ability:'Transmute the flow of time around you. You gain one additional action this turn, usable only to Dash, Disengage, or make one weapon attack.',diceFormula:null,diceLabel:null},
+  {id:'tr3',unlocked:false,name:'Polymorph Touch',    type:'transmutation',uses:1,maxUses:1,rarity:2,activations:0,favourite:false,addedAt:1700000033000,ability:'Touch a willing or incapacitated creature. It transforms into a beast of CR 1 or lower of your choice for up to 1 hour or until it drops to 0 HP.',diceFormula:null,diceLabel:null}
+];
+
+const DEFAULT_HERO={name:'',portrait:'',portraitOriginal:'',profBonus:2,modifierType:'STR',modifierVal:0,level:1,levelLock:false,blurLocked:true};
+
+// ════════════════════════════════════════════════════════
+// ── UNLOCK CODES (pre-computed, deterministic) ───────────────
+const UNLOCK_CODES={
+  't1':'CHM-AB0F-9E81','t2':'CHM-92A5-CB8F','t3':'CHM-4A0B-D8A5',
+  't4':'CHM-E41C-ACD4','t5':'CHM-EAF9-9903','t6':'CHM-F890-4F4C',
+  't7':'CHM-E537-225B','t8':'CHM-EAEF-5497','t9':'CHM-9A94-9283',
+  'a1':'CHM-7DB1-CFB6','a2':'CHM-5006-AC3D','a3':'CHM-498A-CFEA',
+  'c1':'CHM-DC83-03EF','c2':'CHM-1348-4600','c3':'CHM-0BE2-11A7',
+  'd1':'CHM-37BF-C970','d2':'CHM-9FB4-53BA','d3':'CHM-8B63-19D8',
+  'e1':'CHM-8C38-9614','e2':'CHM-A1D5-6990','e3':'CHM-EABC-BF1F',
+  'ev1':'CHM-205C-2C62','ev2':'CHM-CDE3-FFDA','ev3':'CHM-D6AA-A2EC',
+  'i1':'CHM-D544-F5FD','i2':'CHM-BE6E-054B','i3':'CHM-B6B8-9EAA',
+  'n1':'CHM-A701-948A','n2':'CHM-886D-C09B','n3':'CHM-E168-9E5E',
+  'tr1':'CHM-FD9F-C7BF','tr2':'CHM-6611-C817','tr3':'CHM-9CAB-D582',
+};
+
+const UNLOCKED_BY_DEFAULT_IDS=new Set(['t7','t8','t9']);
+
+const MASTER_UNLOCK_CODE='CHM-D3F8-49D8';
+
+function tryUnlockCode(raw){
+  const code=raw.trim().toUpperCase();
+
+  // Master code — toggle all built-in traits
+  if(code===MASTER_UNLOCK_CODE){
+    const allUnlocked=S.catalogue.every(t=>t.unlocked);
+    S.catalogue.forEach(t=>{ t.unlocked=!allUnlocked; });
+    save();
+    return {ok:true,master:true,msg:allUnlocked?'All Traits locked.':'All Traits unlocked!'};
+  }
+
+  // Per-trait code — toggles lock state
+  const match=Object.entries(UNLOCK_CODES).find(([id,v])=>v===code);
+  if(!match) return {ok:false};
+  const [tid]=match;
+  const idx=S.catalogue.findIndex(t=>t.id===tid);
+  if(idx===-1) return {ok:false};
+  S.catalogue[idx].unlocked=!S.catalogue[idx].unlocked;
+  const nowUnlocked=S.catalogue[idx].unlocked;
+  if(!nowUnlocked){
+    const pid=S.catalogue[idx].id;
+    S.pool=S.pool.map(p=>p&&p.id===pid?null:p);
+    if(S.phantomPool&&S.phantomPool.id===pid) S.phantomPool=null;
+    checkEpistasisBreak();
+  }
+  save();
+  return {ok:true,toggled:true,unlocked:nowUnlocked,trait:S.catalogue[idx],
+    msg:nowUnlocked?`${S.catalogue[idx].name} unlocked!`:`${S.catalogue[idx].name} locked.`};
+}
+
+// STATE
+// ════════════════════════════════════════════════════════
+
+// ── State loaded async from IndexedDB ────────────────────────
+// S starts as defaults; initApp() loads real data then renders
+
+let S={
+  hero:{...DEFAULT_HERO},
+  catalogue:JSON.parse(JSON.stringify(DEFAULT_TRAITS)),
+  pool:[null,null,null],
+  phantomPool:null,
+  synergies:JSON.parse(JSON.stringify(DEFAULT_SYNERGIES)),
+  customTypes:[],
+  pageLock:false,
+};
+
+// ── STATE MIGRATIONS — patch missing fields on any loaded state ──
+(()=>{
+  // Hero fields
+  if(!S.hero) S.hero={...DEFAULT_HERO};
+  if(S.hero.portraitOriginal===undefined) S.hero.portraitOriginal='';
+  if(S.hero.blurLocked===undefined) S.hero.blurLocked=true;
+  if(S.hero.levelLock===undefined) S.hero.levelLock=false;
+  if(S.hero.level===undefined) S.hero.level=1;
+  if(S.hero.profBonus===undefined) S.hero.profBonus=2;
+  if(S.hero.modifierType===undefined) S.hero.modifierType='STR';
+  if(S.hero.modifierVal===undefined) S.hero.modifierVal=0;
+  // Pool
+  if(!S.pool||!Array.isArray(S.pool)) S.pool=[null,null,null];
+  while(S.pool.length<3) S.pool.push(null);
+  if(S.phantomPool===undefined) S.phantomPool=null;
+  // Synergies
+  if(!S.synergies||!S.synergies.length) S.synergies=JSON.parse(JSON.stringify(DEFAULT_SYNERGIES));
+  // Patch all synergies — ensure new fields exist and ep_con is correct
+  S.synergies.forEach(syn=>{
+    if(syn.discovered===undefined) syn.discovered=false;
+    if(syn.triggers===undefined){
+      // Legacy school-based synergy — replace with DEFAULT version
+      const def=DEFAULT_SYNERGIES.find(d=>d.id===syn.id);
+      if(def) Object.assign(syn,{...def,spent:syn.spent,phantomSlot:syn.phantomSlot});
+    }
+  });
+  const epCon=S.synergies.find(s=>s.id==='ep_con');
+  if(epCon){
+    if(epCon.triggerType!=='planar') epCon.triggerType='planar';
+    if(epCon.phantomSlot===undefined) epCon.phantomSlot=null;
+  }
+  // Catalogue traits — patch missing fields
+  if(!S.catalogue||!Array.isArray(S.catalogue)) S.catalogue=[];
+  if(!S.customTraits||!Array.isArray(S.customTraits)) S.customTraits=[];
+  // Extract any custom traits that were previously stored in S.catalogue
+  if(S.catalogue){
+    const builtInIds=new Set(DEFAULT_TRAITS.map(t=>t.id));
+    const extracted=S.catalogue.filter(t=>!builtInIds.has(t.id));
+    if(extracted.length){
+      extracted.forEach(t=>{t.custom=true;t.unlocked=true;});
+      S.customTraits=[...S.customTraits,...extracted.filter(t=>!S.customTraits.find(x=>x.id===t.id))];
+      S.catalogue=S.catalogue.filter(t=>builtInIds.has(t.id));
+      console.log('[Chimeric] Extracted',extracted.length,'custom traits from catalogue');
+    }
+  }
+  [...S.catalogue,...S.customTraits].forEach(t=>{
+    if(t.favourite===undefined) t.favourite=false;
+    if(t.addedAt===undefined) t.addedAt=Date.now();
+    if(t.activations===undefined) t.activations=0;
+    if(t.unlocked===undefined) t.unlocked=UNLOCKED_BY_DEFAULT_IDS.has(t.id);
+
+  });
+  // Custom types
+  if(!S.customTypes) S.customTypes=[];
+  if(!S.customTraits) S.customTraits=[];
+  if(S.pageLock===undefined) S.pageLock=false;
+})();
+
+function save(){
+  // Store portrait original separately (potentially large)
+  const portraitOrig=S.hero.portraitOriginal||'';
+  const slim={...S, hero:{...S.hero, portraitOriginal:''}};
+  dbSet(SK,slim).catch(e=>console.warn('[Chimeric] State save failed:',e));
+  if(portraitOrig){
+    dbSet(SK+'_portrait_orig',portraitOrig).catch(e=>console.warn('[Chimeric] Portrait orig save failed:',e));
+  }
+}
+
+// Safety net — save on page unload
+window.addEventListener('beforeunload',save);
+
+// ── FULL CATALOGUE — built-in (read-only) + custom traits ────
+function getFullCatalogue(){
+  return [...S.catalogue, ...S.customTraits];
+}
+// Custom traits always unlocked; mark them
+function isCustomTrait(id){
+  return S.customTraits.some(t=>t.id===id);
+}
+
+
+
+
+// ════════════════════════════════════════════════════════
+// UTILS
+// ════════════════════════════════════════════════════════
+function uid(){return Math.random().toString(36).slice(2,10);}
+function gt(id){return FIXED_TYPES.find(t=>t.id===id)||FIXED_TYPES[0];}
+function allTypes(){return[...FIXED_TYPES];}
+
+
+function parseDice(f){if(!f)return null;const m=f.match(/^(\d+)d(\d+)([+-]\d+)?$/i);return m?{count:+m[1],sides:+m[2],mod:+(m[3]||0)}:null;}
+function roll(f){const d=parseDice(f);if(!d)return null;const rolls=Array.from({length:d.count},()=>Math.floor(Math.random()*d.sides)+1);return{rolls,total:rolls.reduce((a,b)=>a+b,0)+d.mod,formula:f};}
+function activeEp(){
+  const poolIds=new Set(
+    [...S.pool.filter(Boolean), S.phantomPool].filter(Boolean).map(t=>t.id)
+  );
+  if(poolIds.size<2) return [];
+  return S.synergies.filter(syn=>{
+    // Special: triggerAny — requires one specific trait + any of the same school
+    if(syn.triggerAny){
+      const hasAnchor=syn.triggers.every(id=>poolIds.has(id));
+      if(!hasAnchor) return false;
+      const schoolCount=[...S.pool.filter(Boolean),S.phantomPool].filter(Boolean)
+        .filter(t=>t.type===syn.triggerAnySchool).length;
+      return schoolCount>=2;
+    }
+    // Standard: all trigger IDs must be in pool
+    return syn.triggers.every(id=>poolIds.has(id));
+  });
+}
+
+let _nt=null;
+function notify(msg,color='var(--gold)'){
+  const el=document.getElementById('notif');
+  el.textContent=msg;el.style.borderLeftColor=color;el.classList.add('show');
+  clearTimeout(_nt);_nt=setTimeout(()=>el.classList.remove('show'),2800);
+}
+
+// ════════════════════════════════════════════════════════
+// BACKGROUND — vellum breathing + blood
+// ════════════════════════════════════════════════════════
+(()=>{
+  const canvas=document.getElementById('bg-canvas');
+  const ctx=canvas.getContext('2d');
+  const reduced=window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+  let W=0,H=0,t=0;
+
+  function rand(a,b){return a+(b-a)*Math.random();}
+  function ease(x){return x<.5?2*x*x:1-2*(1-x)*(1-x);}
+
+  // Use visualViewport if available (stable on mobile browser chrome show/hide)
+  function getVW(){ return window.visualViewport?window.visualViewport.width:window.innerWidth; }
+  function getVH(){ return window.visualViewport?window.visualViewport.height:window.innerHeight; }
+
+  function resize(){
+    const newW=getVW(), newH=getVH();
+    // Only do a hard reset if dimensions changed significantly (>30px)
+    // This avoids disrupting drips on small mobile chrome adjustments
+    const bigChange=Math.abs(newW-W)>30||Math.abs(newH-H)>30;
+    W=canvas.width=newW;
+    H=canvas.height=newH;
+    initPools();
+    if(bigChange) initDrips();
+  }
+  window.addEventListener('resize',resize);
+  if(window.visualViewport){
+    window.visualViewport.addEventListener('resize',()=>{
+      // Only resize canvas width if it actually changed; ignore height-only
+      // changes caused by mobile browser chrome sliding (URL bar show/hide)
+      const newW=getVW(), newH=getVH();
+      const wChanged=Math.abs(newW-W)>10;
+      if(wChanged){ W=canvas.width=newW; H=canvas.height=newH; initPools(); }
+      // Never reinit drips on viewport-only height change
+    });
+  }
+
+  // ── Vellum breathing blobs ───────────────────────────
+  const blobs=[
+    {cx:.25,cy:.18,rx:.55,ry:.42,ph:0,   r:32,g:18,b:0},
+    {cx:.75,cy:.62,rx:.50,ry:.40,ph:1.9, r:44,g:24,b:6},
+    {cx:.50,cy:.88,rx:.58,ry:.32,ph:3.3, r:28,g:14,b:0},
+    {cx:.10,cy:.55,rx:.42,ry:.48,ph:1.1, r:22,g:10,b:0},
+    {cx:.90,cy:.28,rx:.40,ry:.44,ph:2.5, r:38,g:20,b:4},
+  ];
+
+  // ── Blood pools — crimson glows at edges/corners ─────
+  let pools=[];
+  function initPools(){
+    pools=[
+      // bottom-left corner — largest pool
+      {ax:0,   ay:1,   rx:0.38,ry:0.22, ph:0.0, speed:0.003, minA:0.28,maxA:0.50},
+      // bottom-right corner
+      {ax:1,   ay:1,   rx:0.32,ry:0.20, ph:2.1, speed:0.004, minA:0.22,maxA:0.42},
+      // bottom centre
+      {ax:0.5, ay:1,   rx:0.24,ry:0.13, ph:1.0, speed:0.003, minA:0.16,maxA:0.32},
+      // left mid
+      {ax:0,   ay:0.65,rx:0.14,ry:0.22, ph:3.2, speed:0.004, minA:0.14,maxA:0.28},
+      // right mid
+      {ax:1,   ay:0.5, rx:0.14,ry:0.25, ph:1.7, speed:0.004, minA:0.14,maxA:0.26},
+    ];
+  }
+
+  function drawPools(){
+    ctx.save();
+    pools.forEach(p=>{
+      const pulse=ease(Math.sin(t*p.speed*40+p.ph)*0.5+0.5);
+      const a=p.minA+pulse*(p.maxA-p.minA);
+      const rx=p.rx*W*(0.85+pulse*0.30);
+      const ry=p.ry*H*(0.80+pulse*0.40);
+      const cx=p.ax*W, cy=p.ay*H;
+      const g=ctx.createRadialGradient(cx,cy,0,cx,cy,Math.max(rx,ry));
+      g.addColorStop(0,   `rgba(160,8,6,${a})`);
+      g.addColorStop(0.30,`rgba(110,4,3,${a*0.72})`);
+      g.addColorStop(0.65,`rgba(60,2,1,${a*0.35})`);
+      g.addColorStop(1,   'rgba(0,0,0,0)');
+      ctx.beginPath();
+      ctx.ellipse(cx,cy,rx,ry,0,0,Math.PI*2);
+      ctx.fillStyle=g;
+      ctx.fill();
+    });
+    ctx.restore();
+  }
+
+  // ── Drip trails ─────────────────────────────────────
+  const MAX_DRIPS=9;
+  let drips=[];
+
+  function makeDrip(){
+    const onLeft=Math.random()<0.5;
+    const x=onLeft?rand(2,Math.min(28,W*0.04)):rand(Math.max(W-28,W*0.96),W-2);
+    return{
+      x, y:rand(-20,H*0.25),
+      vy:rand(0.8,2.2),
+      friction:rand(0.982,0.996),
+      w:rand(3,7),
+      alpha:rand(0.28,0.45),
+      tail:[],
+      maxTail:60,
+      alive:true,
+    };
+  }
+
+  function initDrips(){
+    drips=[];
+    // pre-seed a couple so screen isn't bare on load
+    for(let i=0;i<3;i++){
+      const d=makeDrip();
+      d.y=rand(H*0.1,H*0.8);  // start mid-screen
+      drips.push(d);
+    }
+  }
+
+  function updateDrips(){
+    // Always spawn if below max — ensures continuous animation
+    if(drips.length<MAX_DRIPS&&Math.random()<0.018) drips.push(makeDrip());
+    // Force at least one drip alive at all times
+    if(!drips.some(d=>d.alive)) drips.push(makeDrip());
+    drips.forEach(d=>{
+      d.vy*=d.friction;
+      d.y+=d.vy;
+      // Fade alpha as drip slows — gradual disappearance
+      const speedRatio=Math.min(d.vy/1.5,1);
+      const currentAlpha=d.alpha*Math.max(0.12,speedRatio);
+      d.tail.push({y:d.y,a:currentAlpha});
+      if(d.tail.length>d.maxTail) d.tail.shift();
+      if(d.vy<0.04||d.y>H+80) d.alive=false;
+    });
+    // Gradually shrink dead tails (fade out bottom) instead of instant removal
+    drips=drips.filter(d=>{
+      if(!d.alive&&d.tail.length>0){ d.tail.shift(); return true; }
+      return d.alive;
+    });
+  }
+
+  function drawDrips(){
+    ctx.save();
+    drips.forEach(d=>{
+      if(!d.tail.length) return;
+      const topY=d.tail[0].y;
+      const botY=d.tail[d.tail.length-1].y;
+      if(botY<0||topY>H) return;
+
+      // Streak — use tail's fading alpha at each end
+      const topA=d.tail[0].a;
+      const botA=d.tail[d.tail.length-1].a;
+      const g=ctx.createLinearGradient(d.x,topY,d.x,botY);
+      g.addColorStop(0,`rgba(140,5,4,0)`);
+      g.addColorStop(0.2,`rgba(160,7,5,${topA*0.4})`);
+      g.addColorStop(1,`rgba(200,10,8,${botA})`);
+      ctx.beginPath();
+      ctx.moveTo(d.x-d.w*0.5,topY);
+      ctx.lineTo(d.x+d.w*0.5,topY);
+      ctx.lineTo(d.x+d.w*0.5,botY);
+      ctx.lineTo(d.x-d.w*0.5,botY);
+      ctx.closePath();
+      ctx.fillStyle=g;
+      ctx.fill();
+
+      // Bead at tip — only when alive, fades with speed
+      if(d.alive&&botA>0.05){
+        const br=d.w*2.2;
+        const bg2=ctx.createRadialGradient(d.x,botY,0,d.x,botY,br*1.5);
+        bg2.addColorStop(0,`rgba(220,12,10,${botA})`);
+        bg2.addColorStop(0.45,`rgba(150,6,5,${botA*0.5})`);
+        bg2.addColorStop(1,'rgba(0,0,0,0)');
+        ctx.beginPath();
+        ctx.arc(d.x,botY,br,0,Math.PI*2);
+        ctx.fillStyle=bg2;
+        ctx.fill();
+      }
+    });
+    ctx.restore();
+  }
+
+  // ── Ripples in pools ─────────────────────────────────
+  let ripples=[];
+  function maybeRipple(){
+    if(ripples.length>=5||Math.random()>0.008) return;
+    const p=pools[Math.floor(Math.random()*pools.length)];
+    const cx=p.ax*W+rand(-p.rx*W*0.3,p.rx*W*0.3);
+    const cy=p.ay*H+rand(-p.ry*H*0.3,p.ry*H*0.3);
+    ripples.push({cx,cy,r:2,maxR:rand(50,140),a:0.65,speed:rand(0.5,1.1)});
+  }
+
+  function drawRipples(){
+    ctx.save();
+    ripples=ripples.filter(r=>{
+      r.r+=r.speed;
+      const pct=r.r/r.maxR;
+      const a=r.a*(1-pct);
+      ctx.beginPath();
+      ctx.ellipse(r.cx,r.cy,r.r,r.r*0.3,0,0,Math.PI*2);
+      ctx.strokeStyle=`rgba(200,10,8,${a})`;
+      ctx.lineWidth=1.8;
+      ctx.stroke();
+      return pct<1;
+    });
+    ctx.restore();
+  }
+
+  // ── Main loop ────────────────────────────────────────
+  let last=0;
+  function frame(ts){
+    requestAnimationFrame(frame);
+    const dt=ts-last;
+    if(dt<20) return; // ~50fps cap
+    last=ts;
+    t+=dt*0.001; // t in seconds
+
+    ctx.clearRect(0,0,W,H);
+
+    // Base warm dark
+    ctx.fillStyle='#0e0702';
+    ctx.fillRect(0,0,W,H);
+
+    // Vellum breathing
+    blobs.forEach(b=>{
+      const p=ease(Math.sin(t*0.7+b.ph)*0.5+0.5);
+      const a=0.05+p*0.07;
+      const rx=(b.rx+p*0.06)*W, ry=(b.ry+p*0.05)*H;
+      const g=ctx.createRadialGradient(b.cx*W,b.cy*H,0,b.cx*W,b.cy*H,Math.max(rx,ry));
+      g.addColorStop(0,`rgba(${b.r},${b.g},${b.b},${a})`);
+      g.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.beginPath();
+      ctx.ellipse(b.cx*W,b.cy*H,rx,ry,Math.sin(t*0.3+b.ph)*0.4,0,Math.PI*2);
+      ctx.fillStyle=g; ctx.fill();
+    });
+
+    // Candle glow
+    const br=ease(Math.sin(t*1.1)*0.5+0.5);
+    const cg=ctx.createRadialGradient(W*0.5,0,0,W*0.5,0,W*0.6);
+    cg.addColorStop(0,`rgba(70,35,4,${0.03+br*0.04})`);
+    cg.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=cg; ctx.fillRect(0,0,W,H);
+
+    if(!reduced){
+      drawPools();
+      updateDrips(); drawDrips();
+      maybeRipple(); drawRipples();
+    }
+  }
+
+  resize();
+  requestAnimationFrame(frame);
+})();
+
+// ════════════════════════════════════════════════════════
+// EPISTASIS SVG
+// ════════════════════════════════════════════════════════
+let _prevEpIds='';
+
+function drawEpTree(){
+  const svg=document.getElementById('epistasis-svg');
+  svg.innerHTML='';
+  const ep=activeEp();
+  const curIds=ep.map(e=>e.id).join(',');
+  const changed=curIds!==_prevEpIds;
+  _prevEpIds=curIds;
+  if(!ep.length)return;
+
+  const epTriggerIds=new Set(ep.flatMap(s=>s.triggers));
+  const involved=S.pool.map((t,i)=>({t,i})).filter(x=>x.t&&epTriggerIds.has(x.t.id));
+  if(involved.length<2)return;
+
+  const isMobile=window.innerWidth<560;
+  const cards=document.querySelectorAll('#pool-grid .pool-slot-card');
+  const svgRect=svg.getBoundingClientRect();
+  const rects=involved.map(({i})=>{
+    const card=cards[i];if(!card)return null;
+    const r=card.getBoundingClientRect();
+    return{left:r.left-svgRect.left,top:r.top-svgRect.top,right:r.right-svgRect.left,
+      bottom:r.bottom-svgRect.top,cx:r.left-svgRect.left+r.width/2,cy:r.top-svgRect.top+r.height/2};
+  }).filter(Boolean);
+  if(rects.length<2)return;
+
+  if(!involved.length) return;
+  const typeColors=involved.map(({t})=>gt(t.type).color);
+  const defs=document.createElementNS('http://www.w3.org/2000/svg','defs');
+
+  function mkGrad(id,x1,y1,x2,y2,stops){
+    const g=document.createElementNS('http://www.w3.org/2000/svg','linearGradient');
+    g.setAttribute('id',id);g.setAttribute('gradientUnits','userSpaceOnUse');
+    g.setAttribute('x1',x1);g.setAttribute('y1',y1);g.setAttribute('x2',x2);g.setAttribute('y2',y2);
+    stops.forEach(([o,c])=>{const s=document.createElementNS('http://www.w3.org/2000/svg','stop');s.setAttribute('offset',o);s.setAttribute('stop-color',c);g.appendChild(s);});
+    defs.appendChild(g);
+  }
+
+  const GAP=10;let pathD='';
+  if(isMobile){
+    const lx=Math.min(...rects.map(r=>r.left))-GAP;
+    const topY=rects[0].top+8,botY=rects[rects.length-1].bottom-8;
+    const midY=(topY+botY)/2;
+    pathD+=`M ${lx} ${topY} L ${lx} ${botY} `;
+    rects.forEach(r=>{pathD+=`M ${lx} ${r.cy} L ${r.left} ${r.cy} `;});
+    mkGrad('ep-main',lx,topY,lx,botY,typeColors.map((c,i)=>[`${Math.round(i/(typeColors.length-1||1)*100)}%`,c]));
+    mkGrad('ep-flow',lx,topY,lx,botY,[['0%','rgba(255,255,255,0)'],['50%','rgba(255,255,255,0.5)'],['100%','rgba(255,255,255,0)']]);
+    svg.appendChild(defs);
+    buildPaths(svg,pathD,changed);
+    addDot(svg,lx,midY,typeColors[0]);
+    rects.forEach((r,i)=>addDot(svg,lx,r.cy,typeColors[i]||typeColors[0],3));
+  } else {
+    const topY=Math.min(...rects.map(r=>r.top))-GAP;
+    const brY=topY-22;
+    const leftX=rects[0].cx,rightX=rects[rects.length-1].cx,jctX=(leftX+rightX)/2;
+    rects.forEach(r=>{pathD+=`M ${r.cx} ${r.top} L ${r.cx} ${topY} `;});
+    pathD+=`M ${leftX} ${topY} L ${rightX} ${topY} `;
+    pathD+=`M ${jctX} ${topY} L ${jctX} ${brY} `;
+    mkGrad('ep-main',leftX,topY,rightX,topY,typeColors.map((c,i)=>[`${Math.round(i/(typeColors.length-1||1)*100)}%`,c]));
+    mkGrad('ep-flow',leftX,topY,rightX,topY,[['0%','rgba(255,255,255,0)'],['50%','rgba(255,255,255,0.5)'],['100%','rgba(255,255,255,0)']]);
+    svg.appendChild(defs);
+    buildPaths(svg,pathD,changed);
+    addDot(svg,jctX,brY,typeColors[Math.floor(typeColors.length/2)]||typeColors[0]);
+    rects.forEach((r,i)=>addDot(svg,r.cx,r.top,typeColors[i]||typeColors[0],3.5));
+  }
+}
+
+function buildPaths(svg,d,animate){
+  const tr=document.createElementNS('http://www.w3.org/2000/svg','path');
+  tr.setAttribute('d',d);tr.setAttribute('fill','none');tr.setAttribute('stroke','url(#ep-main)');
+  tr.setAttribute('stroke-width','2.5');tr.setAttribute('stroke-opacity','.62');tr.setAttribute('stroke-linecap','round');
+  if(animate){
+    tr.style.strokeDasharray='1200';tr.style.strokeDashoffset='1200';
+    tr.style.transition='stroke-dashoffset .9s cubic-bezier(.4,0,.2,1)';
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{tr.style.strokeDashoffset='0';}));
+  }
+  svg.appendChild(tr);
+  const fl=document.createElementNS('http://www.w3.org/2000/svg','path');
+  fl.setAttribute('d',d);fl.setAttribute('fill','none');fl.setAttribute('stroke','url(#ep-flow)');
+  fl.setAttribute('stroke-width','2.5');fl.setAttribute('stroke-linecap','round');fl.setAttribute('stroke-dasharray','36 100');
+  const an=document.createElementNS('http://www.w3.org/2000/svg','animate');
+  an.setAttribute('attributeName','stroke-dashoffset');an.setAttribute('from','136');an.setAttribute('to','0');
+  an.setAttribute('dur','1.8s');an.setAttribute('repeatCount','indefinite');
+  fl.appendChild(an);svg.appendChild(fl);
+}
+
+function addDot(svg,cx,cy,color,r=5){
+  const c=document.createElementNS('http://www.w3.org/2000/svg','circle');
+  c.setAttribute('cx',cx);c.setAttribute('cy',cy);c.setAttribute('r',r);c.setAttribute('fill',color);c.setAttribute('opacity','.82');
+  if(r===5){const a=document.createElementNS('http://www.w3.org/2000/svg','animate');
+    a.setAttribute('attributeName','r');a.setAttribute('values','4;6;4');a.setAttribute('dur','2s');a.setAttribute('repeatCount','indefinite');c.appendChild(a);}
+  svg.appendChild(c);
+}
+
+window.addEventListener('resize',()=>{_prevEpIds='';setTimeout(drawEpTree,60);});
+
+// ════════════════════════════════════════════════════════
+// TABS
+// ════════════════════════════════════════════════════════
+let activeTab='pool';
+let catSort='alpha';
+let expSort='alpha';
+let catFilters={schools:new Set(),rarity:new Set(),type:'all'};
+let expFilters={schools:new Set(),rarity:new Set(),type:'all'};
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    activeTab=btn.dataset.tab;
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-'+activeTab).classList.add('active');
+    if(activeTab==='pool'){_prevEpIds='';setTimeout(drawEpTree,60);}
+    if(activeTab==='experiments')renderExperimentsTab();
+    if(activeTab==='catalogue'){const old=document.getElementById('cat-sort-bar');if(old)old.parentElement.removeChild(old);const og=document.getElementById('catalogue-grid');if(og)og.parentElement.removeChild(og);renderCatalogue();}
+  });
+});
+
+
+
+// ════════════════════════════════════════════════════════
+// IN-APP PROMPT MODAL
+// ════════════════════════════════════════════════════════
+let _promptCb=null;
+function openPromptModal(title,body,placeholder,onConfirm){
+  document.getElementById('prompt-title').textContent=title;
+  document.getElementById('prompt-body').textContent=body||'';
+  const inp=document.getElementById('prompt-input');
+  inp.placeholder=placeholder||'';
+  inp.value='';
+  _promptCb=onConfirm;
+  document.getElementById('prompt-overlay').classList.add('open');
+  setTimeout(()=>inp.focus(),120);
+}
+document.getElementById('prompt-cancel').addEventListener('click',()=>{
+  document.getElementById('prompt-overlay').classList.remove('open');
+  _promptCb=null;
+});
+document.getElementById('prompt-ok').addEventListener('click',()=>{
+  const val=document.getElementById('prompt-input').value.trim();
+  document.getElementById('prompt-overlay').classList.remove('open');
+  if(_promptCb&&val){_promptCb(val);_promptCb=null;}
+});
+document.getElementById('prompt-input').addEventListener('keydown',e=>{
+  if(e.key==='Enter') document.getElementById('prompt-ok').click();
+  if(e.key==='Escape') document.getElementById('prompt-cancel').click();
+});
+document.getElementById('prompt-overlay').addEventListener('click',e=>{
+  if(e.target===e.currentTarget) document.getElementById('prompt-cancel').click();
+});
+
+// ════════════════════════════════════════════════════════
+// CONFIRM MODAL
+// ════════════════════════════════════════════════════════
+let _confirmCb=null;
+function openConfirmModal(title,bodyHTML,onConfirm,confirmLabel='Remove'){
+  document.getElementById('confirm-title').textContent=title;
+  document.getElementById('confirm-body').innerHTML=bodyHTML;
+  document.getElementById('confirm-ok').textContent=confirmLabel;
+  _confirmCb=onConfirm;
+  document.getElementById('confirm-overlay').classList.add('open');
+}
+document.getElementById('confirm-cancel').addEventListener('click',()=>document.getElementById('confirm-overlay').classList.remove('open'));
+document.getElementById('confirm-ok').addEventListener('click',()=>{
+  document.getElementById('confirm-overlay').classList.remove('open');
+  if(_confirmCb){_confirmCb();_confirmCb=null;}
+});
+document.getElementById('confirm-overlay').addEventListener('click',e=>{if(e.target===e.currentTarget)document.getElementById('confirm-overlay').classList.remove('open');});
+
+// ════════════════════════════════════════════════════════
+// POOL SWAP MODAL (full pool → catalogue add)
+// ════════════════════════════════════════════════════════
+let _swapIncoming=null;
+function openPoolSwapModal(incomingTrait){
+  _swapIncoming=incomingTrait;
+  const list=document.getElementById('pool-swap-list');
+  list.innerHTML='';
+  S.pool.forEach((t,i)=>{
+    if(!t)return;
+    const ti=gt(t.type);
+    const row=document.createElement('div');
+    row.className='pool-picker-row';
+    row.style.setProperty('--type-color',ti.color);
+    row.innerHTML=`
+      <div class="pool-picker-left">
+        <span class="pool-picker-name" style="color:${ti.color}">${ti.icon} ${t.name}</span>
+        <span class="pool-picker-school">${ti.label} · ${t.uses}/${t.maxUses} uses remaining</span>
+      </div>
+      <button class="pool-picker-add" style="border-color:var(--crimson);color:#e8a0a0">Replace</button>`;
+    row.addEventListener('click',()=>{
+      S.pool[i]={..._swapIncoming,uses:_swapIncoming.maxUses};
+      checkEpistasisBreak();
+      document.getElementById('pool-swap-overlay').classList.remove('open');
+      renderAll();notify(`${_swapIncoming.name} replaced ${t.name} in Pool.`);
+      _swapIncoming=null;
+    });
+    list.appendChild(row);
+  });
+  document.getElementById('pool-swap-overlay').classList.add('open');
+}
+document.getElementById('pool-swap-close').addEventListener('click',()=>document.getElementById('pool-swap-overlay').classList.remove('open'));
+document.getElementById('pool-swap-overlay').addEventListener('click',e=>{if(e.target===e.currentTarget)document.getElementById('pool-swap-overlay').classList.remove('open');});
+
+// ════════════════════════════════════════════════════════
+// PLANAR CONVERGENCE MODAL
+// ════════════════════════════════════════════════════════
+function openPlanarModal(){
+  const list=document.getElementById('planar-list');
+  list.innerHTML='';
+  const conjTraits=getFullCatalogue().filter(t=>(t.unlocked||isCustomTrait(t.id))&&t.type==='conjuration');
+  if(!conjTraits.length){
+    list.innerHTML='<p style="color:var(--iron);font-style:italic;font-size:14px">No Conjuration Traits in your Catalogue.</p>';
+  } else {
+    conjTraits.forEach(t=>{
+      const ti=gt(t.type);
+      const alreadyIn=S.pool.some(p=>p&&p.id===t.id)||(S.phantomPool&&S.phantomPool.id===t.id);
+      const row=document.createElement('div');
+      row.className='pool-picker-row'+(alreadyIn?' in-pool':'');
+      row.style.setProperty('--type-color',ti.color);
+      row.innerHTML=`
+        <div class="pool-picker-left">
+          <span class="pool-picker-name" style="color:${ti.color}">${ti.icon} ${t.name}</span>
+          <span class="pool-picker-school">${RARITY[t.rarity]} · ${t.maxUses} use${t.maxUses!==1?'s':''}</span>
+        </div>
+        <button class="pool-picker-add" style="border-color:${ti.color};color:${ti.color}">${alreadyIn?'In Pool':'Summon'}</button>`;
+      if(!alreadyIn){
+        row.addEventListener('click',()=>{
+          S.phantomPool={...t,uses:t.maxUses};
+          const idx=S.synergies.findIndex(s=>s.id==='ep_con');
+          if(idx!==-1){S.synergies[idx].spent=true;S.synergies[idx].phantomSlot=t.id;}
+          document.getElementById('planar-overlay').classList.remove('open');
+          renderAll();notify('Planar Convergence — '+t.name+' summoned!',ti.color);
+        });
+      }
+      list.appendChild(row);
+    });
+  }
+  document.getElementById('planar-overlay').classList.add('open');
+}
+document.getElementById('planar-close').addEventListener('click',()=>document.getElementById('planar-overlay').classList.remove('open'));
+document.getElementById('planar-overlay').addEventListener('click',e=>{if(e.target===e.currentTarget)document.getElementById('planar-overlay').classList.remove('open');});
+
+
+// ════════════════════════════════════════════════════════
+// D20 BUTTON
+// ════════════════════════════════════════════════════════
+let _d20Timer=null;
+
+document.getElementById('btn-d20').addEventListener('click',()=>{
+  const result=Math.floor(Math.random()*20)+1;
+  const shape=document.getElementById('d20-shape');
+  const resEl=document.getElementById('d20-result');
+  const lblEl=document.getElementById('d20-label');
+
+  resEl.textContent='?';
+  shape.classList.add('d20-rolling');
+  lblEl.textContent='Rolling...';
+  document.getElementById('d20-overlay').classList.add('open');
+
+  let ticks=0;
+  const anim=setInterval(()=>{
+    resEl.textContent=Math.floor(Math.random()*20)+1;
+    if(++ticks>18){
+      clearInterval(anim);
+      shape.classList.remove('d20-rolling');
+      resEl.textContent=result;
+      // Colour the result
+      if(result===20){ resEl.style.color='#f0c040'; resEl.style.textShadow='0 0 24px #f0c040, 0 0 48px rgba(240,192,64,.6)'; lblEl.textContent='Natural 20!'; }
+      else if(result===1){ resEl.style.color='#c03030'; resEl.style.textShadow='0 0 24px #c03030'; lblEl.textContent='Critical Fail!'; }
+      else { resEl.style.color='var(--gold-lt)'; resEl.style.textShadow='0 0 16px rgba(201,144,12,.8)'; lblEl.textContent='Roll Result'; }
+      // Auto-dismiss after 10s
+      clearTimeout(_d20Timer);
+      _d20Timer=setTimeout(()=>closeD20(),10000);
+    }
+  },70);
+});
+
+function closeD20(){
+  clearTimeout(_d20Timer);
+  document.getElementById('d20-overlay').classList.remove('open');
+  document.getElementById('d20-shape').classList.remove('d20-rolling');
+}
+// Tap anywhere on overlay or modal to dismiss
+document.getElementById('d20-overlay').addEventListener('click',closeD20);
+
+// ════════════════════════════════════════════════════════
+// UNLOCK TRAIT MODAL
+// ════════════════════════════════════════════════════════
+const UNLOCK_FLAVORS={
+  abjuration:  ['🛡️','The ward accepts you. Its power flows through your blood.'],
+  conjuration: ['🌀','The planes bend. Something answers the call from within you.'],
+  divination:  ['🔮','The threads of fate reveal themselves to your bloodline.'],
+  enchantment: ['💫','A new compulsion stirs. The mind bends to your will.'],
+  evocation:   ['🔥','Raw force surges through your veins. The bloodline ignites.'],
+  illusion:    ['🪞','The veil between truth and falsehood grows thinner for you.'],
+  necromancy:  ['💀','Life and death pause. They recognise something in your blood.'],
+  transmutation:['⚗️','Your very form yearns to change. The Chimera stirs.'],
+};
+
+let _unlockResultTimer=null;
+
+document.getElementById('btn-unlock-trait').addEventListener('click',()=>{
+  document.getElementById('um-code-inp').value='';
+  document.getElementById('unlock-result-area').innerHTML='';
+  document.getElementById('unlock-modal-overlay').classList.add('open');
+  setTimeout(()=>document.getElementById('um-code-inp').focus(),120);
+});
+document.getElementById('unlock-modal-close').addEventListener('click',()=>closeUnlockModal());
+document.getElementById('unlock-modal-overlay').addEventListener('click',e=>{
+  if(e.target===e.currentTarget)closeUnlockModal();
+});
+function closeUnlockModal(){
+  clearTimeout(_unlockResultTimer);
+  document.getElementById('unlock-modal-overlay').classList.remove('open');
+}
+
+const umInp=document.getElementById('um-code-inp');
+const umBtn=document.getElementById('um-apply-btn');
+if(umInp){
+  umInp.addEventListener('input',()=>{ umInp.value=umInp.value.toUpperCase().replace(/[^A-Z0-9-]/g,''); });
+  umInp.addEventListener('keydown',e=>{ if(e.key==='Enter') umBtn.click(); });
+}
+if(umBtn){
+  umBtn.addEventListener('click',()=>{
+    if(!umInp||!umInp.value.trim()) return;
+    const result=tryUnlockCode(umInp.value);
+    const area=document.getElementById('unlock-result-area');
+    umInp.value='';
+
+    if(result.master){
+      area.innerHTML=`<div class="unlock-result" style="margin-top:14px">
+        <div class="unlock-result-icon">📜</div>
+        <div class="unlock-result-name">${result.msg}</div>
+        <div class="unlock-result-flavor" style="margin-top:6px">The Master Code has been invoked. All bloodline knowledge ${result.msg.includes('locked')&&!result.msg.includes('unlock')?'is sealed away.':'floods into awareness.'}</div>
+      </div>`;
+      setTimeout(()=>{
+        const modal=document.getElementById('unlock-modal-inner');
+        if(modal){
+          const r=modal.getBoundingClientRect();
+          triggerInkBurst(r.left+r.width/2, r.top+r.height/2, result.msg.toLowerCase().includes('lock')&&!result.msg.toLowerCase().includes('unlock')?'lock':'unlock');
+        }
+      },30);
+      renderAll();
+      clearTimeout(_unlockResultTimer);
+      _unlockResultTimer=setTimeout(closeUnlockModal,10000);
+      return;
+    }
+
+    if(!result.ok){
+      area.innerHTML=`<div style="color:var(--crimson);font-size:13px;font-style:italic;margin-top:12px;text-align:center">That code is not recognised. Check with your GM.</div>`;
+      umInp.style.borderColor='var(--crimson)';
+      setTimeout(()=>umInp.style.borderColor='',1400);
+      return;
+    }
+
+    const trait=result.trait;
+    const school=trait?trait.type:'transmutation';
+    const [icon,flavor]=UNLOCK_FLAVORS[school]||['✨','The bloodline stirs.'];
+    const action=result.unlocked?'Unlocked':'Locked';
+    const actionColor=result.unlocked?'var(--gold-lt)':'var(--aged)';
+
+    area.innerHTML=`<div class="unlock-result" style="margin-top:14px">
+      <div class="unlock-result-icon">${icon}</div>
+      <div class="unlock-result-name" style="color:${actionColor}">${action}: ${trait?trait.name:''}</div>
+      <div class="unlock-result-flavor">${result.unlocked?flavor:'This knowledge is sealed away once more.'}</div>
+    </div>`;
+
+    // Burst from centre of the result card for full coverage effect
+    setTimeout(()=>{
+      const resCard=area.querySelector('.unlock-result');
+      if(resCard){
+        const r=resCard.getBoundingClientRect();
+        triggerInkBurst(r.left+r.width/2, r.top+r.height/2, result.unlocked?'unlock':'lock');
+      } else {
+        const r=umBtn.getBoundingClientRect();
+        triggerInkBurst(r.left+r.width/2, r.top+r.height/2, result.unlocked?'unlock':'lock');
+      }
+    },30);
+    renderAll();
+    clearTimeout(_unlockResultTimer);
+    _unlockResultTimer=setTimeout(closeUnlockModal,10000);
+  });
+}
+
+
+// ════════════════════════════════════════════════════════
+// INK BURST ANIMATION
+// ════════════════════════════════════════════════════════
+function triggerInkBurst(x, y, type, sizePx){
+  // Default: large enough to cover the modal card (~500px), not the full viewport
+  const size = sizePx || Math.min(window.innerWidth * 0.95, 520);
+  const el = document.createElement('div');
+  el.className = 'ink-burst ' + type;
+  el.style.cssText = `width:${size}px;height:${size}px;` +
+    `left:${x - size/2}px;top:${y - size/2}px;`;
+  document.body.appendChild(el);
+  el.addEventListener('animationend', () => el.remove());
+}
+
+// ════════════════════════════════════════════════════════
+// POOL SLOT PICKER
+// ════════════════════════════════════════════════════════
+let _pickerSlot=null;
+
+function openPoolPicker(slotIndex){
+  _pickerSlot=slotIndex;
+  const list=document.getElementById('pool-picker-list');
+  list.innerHTML='';
+
+  if(S.catalogue.length===0){
+    list.innerHTML='<p style="color:var(--iron);font-style:italic;font-size:14px">No Traits in your Catalogue yet.</p>';
+  } else {
+    // Group by school
+    const bySchool={};
+    getFullCatalogue().filter(t=>t.unlocked||isCustomTrait(t.id)).forEach(t=>{
+      if(!bySchool[t.type])bySchool[t.type]=[];
+      bySchool[t.type].push(t);
+    });
+    Object.entries(bySchool).forEach(([school,traits])=>{
+      const ti=FIXED_TYPES.find(x=>x.id===school)||S.customTypes.find(x=>x.id===school)||FIXED_TYPES[0];
+      const hdr=document.createElement('div');
+      hdr.style.cssText='font-family:"Uncial Antiqua",serif;font-size:10px;color:'+ti.color+';letter-spacing:2px;text-transform:uppercase;padding:8px 0 4px;border-bottom:1px solid rgba(80,50,10,.4);margin-bottom:4px;';
+      hdr.textContent=ti.icon+' '+ti.label;
+      list.appendChild(hdr);
+      traits.forEach(t=>{
+        const alreadyIn=S.pool.some(p=>p&&p.id===t.id);
+        const row=document.createElement('div');
+        row.className='pool-picker-row'+(alreadyIn?' in-pool':'');
+        row.style.setProperty('--type-color',ti.color);
+        row.innerHTML=`
+          <div class="pool-picker-left">
+            <span class="pool-picker-name" style="color:${ti.color}">${t.name}</span>
+            <span class="pool-picker-school">${RARITY[t.rarity]} · ${t.maxUses} use${t.maxUses!==1?'s':''}</span>
+          </div>
+          <button class="pool-picker-add" style="border-color:${ti.color};color:${ti.color}">${alreadyIn?'In Pool':'Add'}</button>`;
+        if(!alreadyIn){
+          row.addEventListener('click',()=>{
+            S.pool[_pickerSlot]={...t,uses:t.maxUses};
+            checkEpistasisBreak();
+            document.getElementById('pool-picker-overlay').classList.remove('open');
+            renderAll();
+            notify(t.name+' added to Pool.',ti.color);
+          });
+        }
+        list.appendChild(row);
+      });
+    });
+  }
+  document.getElementById('pool-picker-overlay').classList.add('open');
+}
+
+document.getElementById('pool-picker-close').addEventListener('click',()=>document.getElementById('pool-picker-overlay').classList.remove('open'));
+document.getElementById('pool-picker-overlay').addEventListener('click',e=>{if(e.target===e.currentTarget)document.getElementById('pool-picker-overlay').classList.remove('open');});
+
+// ════════════════════════════════════════════════════════
+// RENDER
+// ════════════════════════════════════════════════════════
+function renderAll(){renderHero();renderPool();renderCatalogue();renderEpistasis();drawEpTree();updateLockUI();updateTabCounts();if(activeTab==='experiments')renderExperimentsTab();save();}
+
+function updateTabCounts(){
+  document.getElementById('tab-pool-count').textContent=`(${S.pool.filter(Boolean).length}/3)`;
+  document.getElementById('tab-cat-count').textContent=`(${getFullCatalogue().filter(t=>t.unlocked||isCustomTrait(t.id)).length})`;
+}
+
+function updateLockUI(){
+  const btn=document.getElementById('btn-lock'),banner=document.getElementById('lock-banner');
+  if(S.pageLock){btn.textContent='🔒';btn.classList.add('lock-active');banner.classList.add('visible');}
+  else{btn.textContent='🔓';btn.classList.remove('lock-active');banner.classList.remove('visible');}
+}
+
+// ── HERO ──────────────────────────────────────────────────────
+function renderHero(){
+  const h=S.hero,el=document.getElementById('hero-panel');
+  const hasPortrait=!!h.portrait;
+  el.innerHTML=`
+    <div class="portrait-wrap" id="portrait-wrap">
+      ${hasPortrait
+        ?`<img class="portrait-img" src="${h.portrait}" alt="Portrait">`
+        :`<div class="portrait-ph" id="portrait-ph">🧬</div>`}
+    </div>
+    <div class="hero-info">
+      <div class="hero-name-wrap" id="hero-name-wrap">
+        <span class="hero-name" id="hero-name-disp">${h.name||'<em style="color:var(--parchment)">Unnamed Chimera</em>'}</span>
+      </div>
+      <div class="hero-stats">
+        <div class="hero-stat"><span class="stat-label">Prof.</span><span class="stat-value">+${h.profBonus}</span></div>
+        <div class="hero-stat"><span class="stat-label">Mod (${h.modifierType})</span><span class="stat-value">${h.modifierVal>=0?'+':''}${h.modifierVal}</span></div>
+        ${h.levelLock?`<div class="hero-stat"><span class="stat-label">Level</span><span class="stat-value">${h.level}</span></div>`:''}
+        <div class="hero-stat"><span class="stat-label">Save DC</span><span class="stat-value">${8 + h.profBonus + h.modifierVal}</span></div>
+      </div>
+    </div>`;
+
+  // No portrait: clicking placeholder opens file picker directly
+  // Has portrait: clicking opens the portrait manager modal
+  const portraitWrap=document.getElementById('portrait-wrap');
+  if(!hasPortrait){
+    portraitWrap.addEventListener('click',openCropPicker);
+  } else {
+    portraitWrap.addEventListener('click',openPortraitModal);
+  }
+
+  // Inline name edit
+  document.getElementById('hero-name-disp').addEventListener('click',()=>{
+    const wrap=document.getElementById('hero-name-wrap');
+    const inp=document.createElement('input');inp.className='hero-name-input';inp.value=S.hero.name;
+    wrap.innerHTML='';wrap.appendChild(inp);inp.focus();inp.select();
+    function commit(){S.hero.name=inp.value.trim();renderHero();save();}
+    inp.addEventListener('blur',commit);
+    inp.addEventListener('keydown',e=>{if(e.key==='Enter')commit();if(e.key==='Escape')renderHero();});
+  });
+}
+
+// ── POOL ──────────────────────────────────────────────────────
+function renderPool(){
+  const grid=document.getElementById('pool-grid');grid.innerHTML='';
+  const ep=activeEp(),epTrigIds=new Set(ep.flatMap(s=>s.triggers));
+  // Phantom slot auto-clear handled by checkEpistasisBreak()
+  S.pool.forEach((t,i)=>{
+    if(t){const card=buildCard(t,true,i,false,epTrigIds.has(t.id));card.classList.add('pool-slot-card');grid.appendChild(card);}
+    else{
+      const e=document.createElement('div');
+      e.className='pool-slot-empty pool-slot-card';
+      e.innerHTML='<span class="pool-slot-empty-icon">⬡</span><span>Tap to add a Trait</span>';
+      e.addEventListener('click',()=>openPoolPicker(i));
+      grid.appendChild(e);
+    }
+  });
+  // Phantom slot from Planar Convergence
+  if(S.phantomPool){
+    const pt=S.phantomPool;
+    const ti=gt(pt.type);
+    const phantom=buildCard(pt,true,'phantom',false,false);
+    phantom.classList.add('pool-slot-card');
+    phantom.style.outline='2px dashed '+ti.color+'88';
+    phantom.style.outlineOffset='2px';
+    // Add "Phantom" label
+    const lbl=document.createElement('div');
+    lbl.style.cssText=`font-size:10px;color:${ti.color};letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;font-style:italic`;
+    lbl.textContent='⟡ Phantom Slot';
+    phantom.querySelector('.trait-inner').prepend(lbl);
+    // Replace remove with End Effect
+    const rem=phantom.querySelector('.remove-btn');
+    if(rem){
+      rem.textContent='End Effect';
+      rem.onclick=null;
+      rem.addEventListener('click',()=>{
+        S.phantomPool=null;
+        const idx=S.synergies.findIndex(s=>s.id==='ep_con');
+        if(idx!==-1){S.synergies[idx].phantomSlot=null;}
+        renderAll();notify('Planar Convergence ended.','var(--aged)');
+      });
+    }
+    grid.appendChild(phantom);
+  }
+}
+
+// ── SORT HELPERS ─────────────────────────────────────────────
+function sortedTraits(traits, sortKey){
+  const arr=[...traits];
+  const schoolOrder=['abjuration','conjuration','divination','enchantment','evocation','illusion','necromancy','transmutation'];
+  arr.sort((a,b)=>{
+    if(a.favourite&&!b.favourite)return -1;
+    if(!a.favourite&&b.favourite)return 1;
+    switch(sortKey){
+      case 'alpha':  return a.name.localeCompare(b.name);
+      case 'school': {const si=schoolOrder.indexOf(a.type)-schoolOrder.indexOf(b.type);return si||a.name.localeCompare(b.name);}
+      case 'rarity': return b.rarity-a.rarity||a.name.localeCompare(b.name);
+      case 'uses':   return b.maxUses-a.maxUses||a.name.localeCompare(b.name);
+      case 'attack': {const ad=(b.diceFormula?1:0)-(a.diceFormula?1:0);return ad||a.name.localeCompare(b.name);}
+      case 'recent': return (b.addedAt||0)-(a.addedAt||0);
+      case 'fav':    return a.name.localeCompare(b.name);
+      default:       return a.name.localeCompare(b.name);
+    }
+  });
+  return arr;
+}
+
+
+// ── FILTER HELPERS ────────────────────────────────────────────
+function applyFilters(traits, filters){
+  return traits.filter(t=>{
+    if(filters.schools.size>0 && !filters.schools.has(t.type)) return false;
+    if(filters.rarity.size>0 && !filters.rarity.has(t.rarity)) return false;
+    if(filters.type==='attack' && !t.diceFormula) return false;
+    if(filters.type==='utility' && t.diceFormula) return false;
+    return true;
+  });
+}
+
+function countActiveFilters(filters){
+  return filters.schools.size + filters.rarity.size + (filters.type!=='all'?1:0);
+}
+
+function buildFilterPanel(filters, onChange){
+  const wrap=document.createElement('div');wrap.className='filter-wrap';
+
+  const count=countActiveFilters(filters);
+  const btn=document.createElement('button');btn.className='filter-btn'+(count>0?' active':'');
+  btn.innerHTML='Filter'+(count>0?` <span class="filter-badge">${count}</span>`:'');
+  wrap.appendChild(btn);
+
+  const panel=document.createElement('div');panel.className='filter-panel';
+
+  // School checkboxes
+  const schoolLbl=document.createElement('span');schoolLbl.className='filter-section-lbl';schoolLbl.textContent='Magic School';
+  panel.appendChild(schoolLbl);
+  const allTypes=[...FIXED_TYPES,...S.customTypes];
+  allTypes.forEach(ti=>{
+    const row=document.createElement('div');row.className='filter-check-row';
+    const cb=document.createElement('input');cb.type='checkbox';cb.id='fcb-'+ti.id;
+    cb.checked=filters.schools.has(ti.id);
+    const lbl=document.createElement('label');lbl.htmlFor='fcb-'+ti.id;
+    lbl.innerHTML=`<span style="color:${ti.color}">${ti.icon} ${ti.label}</span>`;
+    cb.addEventListener('change',()=>{
+      if(cb.checked)filters.schools.add(ti.id);else filters.schools.delete(ti.id);
+      onChange();
+    });
+    row.appendChild(cb);row.appendChild(lbl);panel.appendChild(row);
+  });
+
+  // Rarity checkboxes
+  const div1=document.createElement('div');div1.className='filter-divider';panel.appendChild(div1);
+  const rarLbl=document.createElement('span');rarLbl.className='filter-section-lbl';rarLbl.textContent='Rarity';
+  panel.appendChild(rarLbl);
+  RARITY.forEach((r,i)=>{
+    const row=document.createElement('div');row.className='filter-check-row';
+    const cb=document.createElement('input');cb.type='checkbox';cb.id='frar-'+i;
+    cb.checked=filters.rarity.has(i);
+    const lbl=document.createElement('label');lbl.htmlFor='frar-'+i;
+    lbl.innerHTML=`<span style="color:${RARITY_CLR[i]}">${r}</span>`;
+    cb.addEventListener('change',()=>{
+      if(cb.checked)filters.rarity.add(i);else filters.rarity.delete(i);
+      onChange();
+    });
+    row.appendChild(cb);row.appendChild(lbl);panel.appendChild(row);
+  });
+
+  // Type filter (attack/utility/all)
+  const div2=document.createElement('div');div2.className='filter-divider';panel.appendChild(div2);
+  const typeLbl=document.createElement('span');typeLbl.className='filter-section-lbl';typeLbl.textContent='Trait Type';
+  panel.appendChild(typeLbl);
+  const typeRow=document.createElement('div');typeRow.className='filter-type-row';
+  [['all','All'],['attack','Attack'],['utility','Utility']].forEach(([val,label])=>{
+    const b=document.createElement('button');b.className='filter-type-btn'+(filters.type===val?' active':'');
+    b.textContent=label;
+    b.dataset.typeVal=val;
+    b.addEventListener('click',e=>{
+      e.stopPropagation();
+      filters.type=val;
+      // Update sibling active classes in place
+      typeRow.querySelectorAll('.filter-type-btn').forEach(btn=>{
+        btn.classList.toggle('active',btn.dataset.typeVal===val);
+      });
+      onChange();
+    });
+    typeRow.appendChild(b);
+  });
+  panel.appendChild(typeRow);
+
+  // Clear
+  const div3=document.createElement('div');div3.className='filter-divider';panel.appendChild(div3);
+  const clearBtn=document.createElement('button');clearBtn.className='filter-clear';clearBtn.textContent='Clear all filters';
+  clearBtn.addEventListener('click',e=>{
+    e.stopPropagation();
+    filters.schools.clear();filters.rarity.clear();filters.type='all';
+    // Update all checkboxes in panel
+    panel.querySelectorAll('input[type=checkbox]').forEach(cb=>cb.checked=false);
+    // Update type buttons
+    panel.querySelectorAll('.filter-type-btn').forEach(btn=>{
+      btn.classList.toggle('active',btn.dataset.typeVal==='all');
+    });
+    onChange();
+  });
+  panel.appendChild(clearBtn);
+
+  // Toggle panel
+  btn.addEventListener('click',e=>{e.stopPropagation();panel.classList.toggle('open');});
+  document.addEventListener('click',()=>panel.classList.remove('open'));
+  panel.addEventListener('click',e=>e.stopPropagation());
+
+  wrap.appendChild(panel);
+  return wrap;
+}
+
+function buildSortBar(currentSort, onChange, filters, onFilterChange){
+  const bar=document.createElement('div');bar.className='sort-bar';
+  const lbl=document.createElement('span');lbl.className='sort-label';lbl.textContent='Sort by';
+  const sel=document.createElement('select');sel.className='sort-select';
+  [['alpha','Alphabetical'],['school','Magic School'],['rarity','Rarity'],
+   ['uses','Max Uses'],['attack','Attack / Utility'],['recent','Recently Added'],['fav','★ Favourites First']
+  ].forEach(([val,label])=>{
+    const o=document.createElement('option');o.value=val;o.textContent=label;
+    if(val===currentSort)o.selected=true;
+    sel.appendChild(o);
+  });
+  sel.addEventListener('change',()=>onChange(sel.value));
+  bar.appendChild(lbl);bar.appendChild(sel);
+  if(filters&&onFilterChange){
+    const fp=buildFilterPanel(filters,onFilterChange);
+    bar.appendChild(fp);
+  }
+  return bar;
+}
+
+// ── CATALOGUE ─────────────────────────────────────────────────
+function renderCatalogue(){
+  const wrap=document.getElementById('tab-catalogue');
+  // Always rebuild — unlock bar state may have changed
+  wrap.innerHTML='';
+
+
+
+  // Sort + filter bar
+  const bar=buildSortBar(catSort,val=>{catSort=val;renderCatalogue();},catFilters,()=>renderCatalogue());
+  bar.id='cat-sort-bar';
+  wrap.appendChild(bar);
+
+  const grid=document.createElement('div');
+  grid.className='catalogue-grid';grid.id='catalogue-grid';
+  wrap.appendChild(grid);
+
+  if(S.catalogue.length===0){
+    grid.innerHTML='<p style="color:var(--iron);font-style:italic;font-size:14px;padding:12px 0">No Traits yet. Add some in the Experiments tab.</p>';
+    return;
+  }
+
+  const sorted=applyFilters(sortedTraits(getFullCatalogue().filter(t=>t.unlocked||isCustomTrait(t.id)),catSort),catFilters);
+
+  if(sorted.length===0&&S.catalogue.length>0){
+    grid.innerHTML='<p style="color:var(--iron);font-style:italic;font-size:14px;padding:12px 0">No Traits match the selected filters.</p>';
+    return;
+  }
+
+  if(catSort==='school'){
+    const schoolOrder=['abjuration','conjuration','divination','enchantment','evocation','illusion','necromancy','transmutation'];
+    const groups={};
+    sorted.filter(t=>t.unlocked||isCustomTrait(t.id)).forEach(t=>{if(!groups[t.type])groups[t.type]=[];groups[t.type].push(t);});
+    [...schoolOrder,...Object.keys(groups).filter(s=>!schoolOrder.includes(s))].filter(s=>groups[s]).forEach(school=>{
+      const ti=FIXED_TYPES.find(x=>x.id===school)||S.customTypes.find(x=>x.id===school)||{icon:'🔮',label:school,color:'var(--gold)'};
+      const hdr=document.createElement('div');
+      hdr.className='school-group-hdr';
+      hdr.style.color=ti.color;hdr.style.borderBottomColor=ti.color+'55';
+      hdr.textContent=ti.icon+' '+ti.label;
+      grid.appendChild(hdr);
+      groups[school].forEach(t=>{
+        const inPool=S.pool.some(p=>p&&p.id===t.id);
+        grid.appendChild(buildCard(t,false,null,inPool,false));
+      });
+    });
+    if(!grid.querySelector('.trait-card')){grid.innerHTML='<p style="color:var(--iron);font-style:italic;font-size:14px;padding:12px 0">No Traits match the selected filters.</p>';}
+  } else {
+    sorted.forEach(t=>{
+      const inPool=S.pool.some(p=>p&&p.id===t.id);
+      grid.appendChild(buildCard(t,false,null,inPool,false));
+    });
+  }
+
+  // ── Locked section ──────────────────────────────────────────
+  const locked=S.catalogue.filter(t=>!t.unlocked);  // built-in locked only (custom are always available)
+  const lockedFiltered=applyFilters(sortedTraits(locked,catSort),catFilters);
+  if(locked.length>0){
+    const lhdr=document.createElement('div');
+    lhdr.className='locked-section-hdr';
+    lhdr.innerHTML=`<span class="locked-section-title">&#x1F512; Locked Traits (${locked.length})</span><div class="locked-section-rule"></div>`;
+    wrap.appendChild(lhdr);
+    const lgrid=document.createElement('div');
+    lgrid.className='catalogue-grid';
+    sortedTraits(locked,catSort).forEach(t=>{
+      lgrid.appendChild(buildLockedCard(t));
+    });
+    wrap.appendChild(lgrid);
+  }
+}
+
+
+// ── EXPERIMENTS TAB ───────────────────────────────────────────
+function renderExperimentsTab(){
+  const body=document.getElementById('experiments-body');
+  if(!body)return;
+  body.innerHTML='';
+
+  if(S.pageLock){
+    body.innerHTML='<p class="rules-p" style="color:var(--crimson);margin-top:8px">Page is locked. Click 🔒 in the header to unlock.</p>';
+    return;
+  }
+
+  // Sort + filter bar (operates on custom traits only)
+  const bar=buildSortBar(expSort,val=>{expSort=val;renderExperimentsTab();},expFilters,()=>renderExperimentsTab());
+  body.appendChild(bar);
+
+  // New trait button
+  const newBtn=document.createElement('button');
+  newBtn.className='btn-primary';newBtn.style.cssText='width:100%;margin-bottom:14px';
+  newBtn.textContent='+ Create New Trait';
+  newBtn.addEventListener('click',()=>openEditModal(null,true));
+  body.appendChild(newBtn);
+
+  // Custom traits list
+  const filtered=applyFilters(sortedTraits(S.customTraits,expSort),expFilters);
+  if(S.customTraits.length===0){
+    const empty=document.createElement('p');
+    empty.style.cssText='color:var(--iron);font-style:italic;font-size:14px;padding:8px 0';
+    empty.textContent='No custom Traits yet. Create one above.';
+    body.appendChild(empty);
+  } else if(filtered.length===0){
+    const empty=document.createElement('p');
+    empty.style.cssText='color:var(--iron);font-style:italic;font-size:14px;padding:8px 0';
+    empty.textContent='No Traits match the selected filters.';
+    body.appendChild(empty);
+  } else {
+    filtered.forEach(t=>{
+      const ti=gt(t.type);
+      const row=document.createElement('div');row.className='edit-trait-row';
+      row.innerHTML=`
+        <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0">
+          <span style="color:${ti.color};font-size:13px">${ti.icon} <strong>${t.name}</strong></span>
+          <span style="color:var(--aged);font-size:11px;font-style:italic">${ti.label}</span>
+          ${t.favourite?'<span style="color:var(--gold);font-size:13px">★</span>':''}
+        </div>
+        <div style="display:flex;gap:5px;flex-shrink:0">
+          <button class="edit-sm-btn" data-eid="${t.id}">Edit</button>
+          <button class="edit-sm-btn del" data-did="${t.id}">Del</button>
+        </div>`;
+      body.appendChild(row);
+    });
+  }
+
+  // Bind events
+  body.querySelectorAll('[data-eid]').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const t=S.customTraits.find(x=>x.id===btn.dataset.eid);
+      if(t)openEditModal(t,true);
+    });
+  });
+  body.querySelectorAll('[data-did]').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const id=btn.dataset.did;
+      const tname=(S.customTraits.find(x=>x.id===id)||{}).name||'this Trait';
+      openConfirmModal('Delete Custom Trait',`Delete <strong style="color:var(--faded)">${tname}</strong>? This cannot be undone.`,()=>{
+        S.customTraits=S.customTraits.filter(x=>x.id!==id);
+        S.pool=S.pool.map(p=>p&&p.id===id?null:p);
+        if(S.phantomPool&&S.phantomPool.id===id)S.phantomPool=null;
+        renderAll();notify('Custom Trait deleted.','var(--crimson)');
+      },'Delete');
+    });
+  });
+}
+
+
+// ── LOCKED TRAIT CARD ─────────────────────────────────────────
+function buildLockedCard(trait){
+  const ti=gt(trait.type);
+  const blur=S.hero.blurLocked;
+  const card=document.createElement('div');
+  card.className='trait-card locked'+(blur?' blurred':'');
+  card.style.borderColor=ti.color+'44';
+  const bg=document.createElement('div');bg.className='trait-card-bg';bg.style.background=ti.bg;bg.style.opacity='0.08';
+  card.appendChild(bg);
+  const inner=document.createElement('div');inner.className='trait-inner';
+  inner.innerHTML=`
+    <div class="trait-header">
+      <span class="trait-name" style="color:${ti.color}88">${ti.icon} ${trait.name}</span>
+      <div class="trait-badges">
+        <span class="trait-type-badge" style="border-color:${ti.color}55;color:${ti.color}88">${ti.label}</span>
+        <div class="rarity-dot" style="background:${RARITY_CLR[trait.rarity]}88" title="${RARITY[trait.rarity]}"></div>
+        <span class="lock-icon">🔒</span>
+      </div>
+    </div>
+    <div class="trait-ability">${trait.ability}</div>
+    ${trait.diceFormula?`<div class="trait-dice-stat" style="opacity:.5">
+      <span class="dice-stat-icon" style="color:var(--aged)">🎲</span>
+      <span class="dice-stat-formula" style="color:var(--aged);font-size:12px">${trait.diceFormula}${trait.diceLabel?' — '+trait.diceLabel:''}</span>
+    </div>`:''}
+    <div style="margin-top:6px">
+      <span style="font-size:11px;color:var(--iron);font-style:italic">Enter unlock code in the field above to unlock this Trait.</span>
+    </div>`;
+  card.appendChild(inner);
+  return card;
+}
+
+// ── EPISTASIS BANNER ──────────────────────────────────────────
+function renderEpistasis(){
+  const ep=activeEp(),sec=document.getElementById('epistasis-section'),ctr=document.getElementById('epistasis-banners');
+  if(!ep.length){sec.style.display='none';return;}
+  sec.style.display='';ctr.innerHTML='';
+  ep.forEach(syn=>{
+    // Mark as discovered when first seen in pool
+    const synIdx=S.synergies.findIndex(s=>s.id===syn.id);
+    if(synIdx!==-1&&!S.synergies[synIdx].discovered){
+      S.synergies[synIdx].discovered=true;
+      save();
+    }
+    // Colour from first trigger trait's school
+    const firstTrigger=getFullCatalogue().find(t=>t.id===syn.triggers[0]);
+    const school=firstTrigger?firstTrigger.type:'abjuration';
+    const ti=FIXED_TYPES.find(t=>t.id===school)||FIXED_TYPES[0];
+    // Determine badge
+    let badge;
+    if(syn.spent && syn.triggerType==='passive' && !syn.phantomSlot)
+      badge='<span class="ep-active-tag">Active</span>';
+    else if(syn.spent)
+      badge='<span class="ep-spent-tag">Spent</span>';
+    else
+      badge='<span class="ep-available-tag">Available</span>';
+
+    const div=document.createElement('div');
+    div.className='epistasis-banner';
+    div.style.setProperty('--ep-color', ti.color);
+    div.innerHTML=`
+      <div class="epistasis-banner-inner">
+        <div class="epistasis-header">
+          <span style="font-size:16px">${ti.icon}</span>
+          <span class="epistasis-name" style="color:${ti.color}">${syn.name}</span>
+          ${badge}
+          <span class="ep-chevron">▼</span>
+        </div>
+        <div class="epistasis-details">
+          <div class="epistasis-flavor" style="margin-bottom:6px">"${syn.flavor}"</div>
+          <div class="epistasis-bonus">${syn.bonus}</div>
+          <div class="epistasis-controls" id="ep-ctrl-${syn.id}" style="margin-top:10px"></div>
+        </div>
+      </div>`;
+    ctr.appendChild(div);
+
+    // Toggle collapse on header click
+    const inner=div.querySelector('.epistasis-banner-inner');
+    inner.addEventListener('click',e=>{
+      // Don't toggle if clicking a button inside details
+      if(e.target.tagName==='BUTTON'||e.target.tagName==='SELECT'||e.target.tagName==='OPTION') return;
+      div.classList.toggle('ep-open');
+    });
+    const ctrl=document.getElementById('ep-ctrl-'+syn.id);
+    if(syn.triggerType==='passive'){
+      if(!syn.spent){
+        const btn=document.createElement('button');
+        btn.className='btn-ep-dismiss';
+        btn.textContent=syn.id==='ep_abj'?'Mark as Triggered':'Dismiss Effect';
+        btn.addEventListener('click',()=>{
+          const idx=S.synergies.findIndex(s=>s.id===syn.id);
+          if(idx!==-1)S.synergies[idx].spent=true;
+          renderEpistasis();save();
+        });
+        if(ctrl) ctrl.appendChild(btn);
+      }
+    } else if(syn.triggerType==='planar'){
+      if(!syn.spent){
+        const btn=document.createElement('button');
+        btn.className='btn-ep-use';btn.textContent='Use Effect';
+        btn.id='planar-use-btn';
+        btn.style.borderColor=ti.color;btn.style.color=ti.color;
+        if(ctrl) ctrl.appendChild(btn);
+        else div.appendChild(btn);
+      } else if(syn.phantomSlot){
+        // Active phantom slot — show which trait + End Effect button
+        const info=document.createElement('div');
+        info.style.cssText='font-size:13px;color:var(--faded);font-style:italic;margin-top:4px;margin-bottom:6px;';
+        const pt=S.phantomPool;
+        info.textContent=pt?`Phantom slot active: ${pt.name}`:'Phantom slot active';
+        if(ctrl) ctrl.appendChild(info);
+        const endBtn=document.createElement('button');
+        endBtn.className='btn-ep-dismiss';endBtn.textContent='End Effect';
+        endBtn.addEventListener('click',()=>{
+          S.phantomPool=null;
+          const idx=S.synergies.findIndex(s=>s.id==='ep_con');
+          if(idx!==-1){S.synergies[idx].phantomSlot=null;}
+          renderAll();notify('Planar Convergence ended.','var(--aged)');
+        });
+        if(ctrl) ctrl.appendChild(endBtn);
+      }
+    } else if(syn.triggerType==='use'){
+      if(!syn.spent){
+        const btn=document.createElement('button');
+        btn.className='btn-ep-use';btn.textContent='Use Effect';
+        btn.style.borderColor=ti.color;btn.style.color=ti.color;
+        btn.addEventListener('click',()=>{
+          const idx=S.synergies.findIndex(s=>s.id===syn.id);
+          if(idx!==-1)S.synergies[idx].spent=true;
+          renderEpistasis();save();
+          notify(syn.name+' used!',ti.color);
+        });
+        if(ctrl) ctrl.appendChild(btn);
+      }
+    } else if(syn.triggerType==='swap'){
+      if(!syn.spent){
+        const poolFilled=S.pool.map((t,i)=>({t,i})).filter(x=>x.t);
+        const schoolTraits=getFullCatalogue().filter(t=>(t.unlocked||isCustomTrait(t.id))&&t.type===syn.school&&!S.pool.some(p=>p&&p.id===t.id));
+        if(poolFilled.length&&schoolTraits.length){
+          const row=document.createElement('div');
+          row.style.cssText='display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:4px;';
+          const selOut=document.createElement('select');selOut.className='form-select';
+          selOut.style.cssText='flex:1;font-size:12px;min-width:0;';
+          poolFilled.forEach(({t,i})=>{const o=document.createElement('option');o.value=i;o.textContent='Remove: '+t.name;selOut.appendChild(o);});
+          const selIn=document.createElement('select');selIn.className='form-select';
+          selIn.style.cssText='flex:1;font-size:12px;min-width:0;';
+          schoolTraits.forEach(t=>{const o=document.createElement('option');o.value=t.id;o.textContent='Add: '+t.name;selIn.appendChild(o);});
+          const btn=document.createElement('button');btn.className='btn-ep-use';
+          btn.textContent='Execute Swap';btn.style.borderColor=ti.color;btn.style.color=ti.color;
+          btn.addEventListener('click',()=>{
+            const outIdx=+selOut.value;
+            const inTrait=S.catalogue.find(t=>t.id===selIn.value);
+            if(inTrait){S.pool[outIdx]={...inTrait,uses:inTrait.maxUses};}
+            const idx=S.synergies.findIndex(s=>s.id===syn.id);
+            if(idx!==-1)S.synergies[idx].spent=true;
+            renderAll();notify('Crucible State — swap complete!',ti.color);
+          });
+          row.appendChild(selOut);row.appendChild(selIn);row.appendChild(btn);
+          ctrl.appendChild(row);
+        } else {
+          const note=document.createElement('div');
+          note.style.cssText='font-size:12px;color:var(--aged);font-style:italic;margin-top:4px;';
+          note.textContent=schoolTraits.length?'No eligible pool traits.':'No '+syn.school+' traits in catalogue to swap in.';
+          ctrl.appendChild(note);
+        }
+      }
+    }
+  });
+  // Wire planar button after full DOM render to avoid closure issues
+  const planarBtn=document.getElementById('planar-use-btn');
+  if(planarBtn) planarBtn.onclick=function(){openPlanarModal();};
+}
+
+// ── TRAIT CARD ────────────────────────────────────────────────
+function buildCard(trait,inPool,poolIdx,alreadyInPool,inEp){
+  const ti=gt(trait.type),exhausted=inPool&&trait.uses===0,hasDice=!!trait.diceFormula;
+  const card=document.createElement('div');
+  card.className='trait-card'+(exhausted?' exhausted':'');
+  if(inPool&&inEp)card.style.boxShadow=`0 0 16px ${ti.color}55`;
+  card.style.borderColor=exhausted?'var(--parchment)':ti.color+'99';
+  const bg=document.createElement('div');bg.className='trait-card-bg';bg.style.background=ti.bg;card.appendChild(bg);
+  const inner=document.createElement('div');inner.className='trait-inner';
+
+  // pip HTML
+  const pips=inPool?Array.from({length:trait.maxUses},(_,i)=>{
+    const p=document.createElement('div');p.className='use-pip'+(i<trait.uses?' filled':'');
+    p.style.borderColor=ti.color;if(i<trait.uses)p.style.background=ti.color;return p.outerHTML;
+  }).join(''):'';
+
+  // stat line for catalogue: uses + optional dice
+  const statLine=!inPool?`
+    <div class="trait-dice-stat">
+      <span class="dice-stat-icon" style="color:var(--aged)">◆</span>
+      <span class="dice-stat-formula" style="color:var(--faded);font-family:'Crimson Pro',serif;font-size:13px">${trait.maxUses} use${trait.maxUses!==1?'s':''}</span>
+      ${hasDice?`<span class="dice-stat-label" style="margin-left:6px">· 🎲 ${trait.diceFormula}${trait.diceLabel?' — '+trait.diceLabel:''}</span>`:''}
+    </div>`:'';
+
+  inner.innerHTML=`
+    <div class="trait-header">
+      <span class="trait-name" style="color:${ti.color}">${ti.icon} ${trait.name}</span>
+      <div class="trait-badges">
+        <span class="trait-type-badge" style="border-color:${ti.color};color:${ti.color}">${ti.label}</span>
+        <div class="rarity-dot" style="background:${RARITY_CLR[trait.rarity]}" title="${RARITY[trait.rarity]}"></div>
+      </div>
+    </div>
+    <div class="trait-ability">${trait.ability}</div>
+    ${statLine}
+    ${inPool?`<div class="use-tracker">${pips}</div>`:''}
+    <div class="trait-actions"></div>`;
+  card.appendChild(inner);
+
+  setTimeout(()=>{
+    const acts=card.querySelector('.trait-actions');if(!acts)return;
+    if(inPool){
+      // dice button OR activate button — never both
+      if(hasDice){
+        const b=document.createElement('button');b.className='btn-trait';
+        b.style.borderColor=ti.color;b.style.color=ti.color;b.disabled=exhausted;
+        b.textContent=`🎲 ${trait.diceFormula}${trait.diceLabel?' — '+trait.diceLabel:''}`;
+        b.addEventListener('click',()=>{if(!exhausted)openDice(trait,poolIdx);});
+        acts.appendChild(b);
+      } else {
+        const b=document.createElement('button');b.className='btn-trait';
+        b.style.borderColor=exhausted?'var(--iron)':ti.color;b.style.color=exhausted?'var(--iron)':ti.color;
+        b.style.background=exhausted?'transparent':`${ti.color}18`;b.disabled=exhausted;
+        b.textContent=exhausted?'Exhausted':'Activate';
+        b.addEventListener('click',()=>{if(!exhausted)activateTrait(poolIdx);});
+        acts.appendChild(b);
+      }
+      const rem=document.createElement('button');rem.className='btn-trait remove-btn';rem.textContent='Remove';
+      rem.addEventListener('click',()=>confirmRemoveFromPool(poolIdx,trait.name));acts.appendChild(rem);
+    } else {
+      // catalogue: Add to Pool + favourite star
+      const add=document.createElement('button');add.className='btn-trait add-btn';
+      add.style.borderColor=alreadyInPool?'var(--iron)':ti.color;add.style.color=alreadyInPool?'var(--iron)':ti.color;
+      add.disabled=alreadyInPool;add.textContent=alreadyInPool?'In Pool':'+ Add to Pool';
+      add.addEventListener('click',()=>{if(!alreadyInPool)addToPool(trait);});acts.appendChild(add);
+      // Favourite heart
+      const star=document.createElement('button');
+      star.className='fav-star'+(trait.favourite?' active':'');
+      star.title=trait.favourite?'Remove from favourites':'Mark as favourite';
+      star.innerHTML=trait.favourite
+        ?'<svg viewBox="0 0 24 24" width="16" height="16" fill="#c03030" stroke="#c03030" stroke-width="2"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>'
+        :'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="var(--aged)" stroke-width="2"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>';
+      star.style.marginLeft='auto';
+      star.addEventListener('click',e=>{
+        e.stopPropagation();
+        const ci=S.customTraits.findIndex(x=>x.id===trait.id);
+        if(ci!==-1){S.customTraits[ci].favourite=!S.customTraits[ci].favourite;}
+        else{const bi=S.catalogue.findIndex(x=>x.id===trait.id);if(bi!==-1)S.catalogue[bi].favourite=!S.catalogue[bi].favourite;}
+        renderCatalogue();save();
+      });
+      acts.appendChild(star);
+    }
+  },0);
+  return card;
+}
+
+// ════════════════════════════════════════════════════════
+// POOL ACTIONS
+// ════════════════════════════════════════════════════════
+function addToPool(trait){
+  if(S.pageLock){notify('Page is locked.','var(--crimson)');return;}
+  if(S.pool.some(p=>p&&p.id===trait.id)){notify('Already in Pool.','var(--aged)');return;}
+  const idx=S.pool.indexOf(null);
+  if(idx===-1){openPoolSwapModal(trait);return;}
+  S.pool[idx]={...trait,uses:trait.maxUses};checkEpistasisBreak();renderAll();notify(`${trait.name} added to Pool.`);
+}
+function confirmRemoveFromPool(idx,name){
+  openConfirmModal(
+    'Remove from Pool',
+    `Remove <strong style="color:var(--faded)">${name}</strong> from your Pool?`,
+    ()=>removeFromPool(idx)
+  );
+}
+
+// ── EPISTASIS BREAK CHECK ─────────────────────────────────────
+// Called whenever pool changes — resets spent state for any
+// synergy whose trigger conditions are no longer met
+function checkEpistasisBreak(){
+  const poolIds=new Set(
+    [...S.pool.filter(Boolean), S.phantomPool].filter(Boolean).map(t=>t.id)
+  );
+  S.synergies.forEach(syn=>{
+    let active=false;
+    if(syn.triggerAny){
+      const hasAnchor=syn.triggers.every(id=>poolIds.has(id));
+      const schoolCount=[...S.pool.filter(Boolean),S.phantomPool].filter(Boolean)
+        .filter(t=>t.type===syn.triggerAnySchool).length;
+      active=hasAnchor&&schoolCount>=2;
+    } else {
+      active=syn.triggers.every(id=>poolIds.has(id));
+    }
+    if(!active&&syn.spent){
+      // Trigger broken — reset spent so effect is available next time
+      syn.spent=false;
+      if(syn.id==='ep_con'){ syn.phantomSlot=null; }
+    }
+  });
+  // Also clear phantom slot if Planar Convergence triggers are gone
+  if(S.phantomPool){
+    const epCon=activeEp().find(s=>s.id==='ep_con');
+    if(!epCon){ S.phantomPool=null; }
+  }
+}
+
+function removeFromPool(idx){
+  const t=S.pool[idx];S.pool[idx]=null;checkEpistasisBreak();renderAll();if(t)notify(`${t.name} removed.`,'var(--iron)');
+}
+function activateTrait(idx){
+  if(idx==='phantom'){
+    const t=S.phantomPool;if(!t||t.uses===0)return;
+    S.phantomPool={...t,uses:t.uses-1,activations:(t.activations||0)+1};
+    renderAll();notify(`${t.name} activated!`,gt(t.type).color);
+    return;
+  }
+  const t=S.pool[idx];if(!t||t.uses===0)return;
+  S.pool[idx]={...t,uses:t.uses-1,activations:(t.activations||0)+1};
+  const ci=S.catalogue.findIndex(c=>c.id===t.id);if(ci!==-1)S.catalogue[ci].activations=(S.catalogue[ci].activations||0)+1;
+  renderAll();notify(`${t.name} activated!`,gt(t.type).color);
+}
+
+// ════════════════════════════════════════════════════════
+// DICE MODAL
+// ════════════════════════════════════════════════════════
+let _dt=null;
+function openDice(trait,poolIdx){
+  if(poolIdx!==null&&poolIdx!==undefined)activateTrait(poolIdx);
+  const result=roll(trait.diceFormula);if(!result)return;
+  document.getElementById('dice-trait-name').textContent=trait.name;
+  document.getElementById('dice-fml').textContent=`Rolling ${trait.diceFormula}${trait.diceLabel?' — '+trait.diceLabel:''}`;
+  document.getElementById('dice-lbl').textContent=trait.diceLabel||'Total';
+  document.getElementById('dice-total').textContent='?';
+  const faces=document.getElementById('dice-faces');
+  const d=parseDice(trait.diceFormula);
+  faces.innerHTML=result.rolls.map(()=>'<div class="die-face rolling">?</div>').join('');
+  clearInterval(_dt);let ticks=0;
+  _dt=setInterval(()=>{
+    faces.querySelectorAll('.die-face').forEach(el=>{el.textContent=Math.floor(Math.random()*(d?.sides||6))+1;});
+    if(++ticks>14){clearInterval(_dt);result.rolls.forEach((r,i)=>{const el=faces.querySelectorAll('.die-face')[i];el.textContent=r;el.classList.remove('rolling');});document.getElementById('dice-total').textContent=result.total;}
+  },65);
+  document.getElementById('dice-overlay').classList.add('open');
+}
+function closeDice(){clearInterval(_dt);document.getElementById('dice-overlay').classList.remove('open');}
+document.getElementById('dice-close').addEventListener('click',closeDice);
+document.getElementById('dice-dismiss').addEventListener('click',closeDice);
+document.getElementById('dice-overlay').addEventListener('click',e=>{if(e.target===e.currentTarget)closeDice();});
+
+// ════════════════════════════════════════════════════════
+// REST MODAL
+// ════════════════════════════════════════════════════════
+let rMode=null,rChoice=null,rSwaps={};
+document.getElementById('rest-btn').addEventListener('click',()=>{rMode=null;rChoice=null;rSwaps={};renderRest();document.getElementById('rest-overlay').classList.add('open');});
+document.getElementById('rest-close').addEventListener('click',()=>document.getElementById('rest-overlay').classList.remove('open'));
+document.getElementById('rest-overlay').addEventListener('click',e=>{if(e.target===e.currentTarget)document.getElementById('rest-overlay').classList.remove('open');});
+
+function renderRest(){
+  const body=document.getElementById('rest-body');
+  if(!rMode){
+    body.innerHTML=`<div class="rest-options">
+      <button class="rest-opt" id="rb-short"><span class="rest-opt-icon">🌙</span><span class="rest-opt-label">Short Rest</span><span class="rest-opt-sub">Refill one Trait's uses</span></button>
+      <button class="rest-opt" id="rb-long"><span class="rest-opt-icon">☀️</span><span class="rest-opt-label">Long Rest</span><span class="rest-opt-sub">Refill all &amp; swap Traits</span></button>
+    </div>`;
+    document.getElementById('rb-short').addEventListener('click',()=>{rMode='short';renderRest();});
+    document.getElementById('rb-long').addEventListener('click',()=>{rMode='long';renderRest();});
+    return;
+  }
+  if(rMode==='short'){
+    const pts=S.pool.map((t,i)=>({t,i})).filter(x=>x.t);
+    body.innerHTML=`<p style="color:var(--aged);font-size:14px;margin-bottom:10px;font-style:italic">Choose one Trait to refill:</p>
+      ${pts.map(({t,i})=>`<div class="rest-trait-row${rChoice===i?' chosen':''}" data-idx="${i}">
+        <span style="color:${gt(t.type).color}">${gt(t.type).icon} ${t.name}</span>
+        <span style="color:var(--aged);font-size:12px">${t.uses}/${t.maxUses}</span></div>`).join('')}
+      <div style="display:flex;gap:10px;margin-top:14px">
+        <button class="btn-secondary" id="rb-back">Back</button>
+        <button class="btn-primary" id="rb-ok" ${rChoice===null?'disabled':''}>Confirm</button>
+      </div>`;
+    body.querySelectorAll('.rest-trait-row').forEach(row=>row.addEventListener('click',()=>{rChoice=+row.dataset.idx;renderRest();}));
+    document.getElementById('rb-back').addEventListener('click',()=>{rMode=null;renderRest();});
+    document.getElementById('rb-ok').addEventListener('click',()=>{
+      const t=S.pool[rChoice];if(t)S.pool[rChoice]={...t,uses:t.maxUses};
+      document.getElementById('rest-overlay').classList.remove('open');renderAll();notify('Short rest — one Trait refilled.');
+    });return;
+  }
+  if(rMode==='long'){
+    const nip=S.catalogue.filter(t=>!S.pool.some(p=>p&&p.id===t.id));
+    body.innerHTML=`<p style="color:var(--aged);font-size:14px;margin-bottom:10px;font-style:italic">All Traits refilled. Optionally swap Pool slots:</p>
+      ${S.pool.map((t,i)=>`<div class="rest-swap-row">
+        <span class="rest-swap-lbl" style="color:${t?gt(t.type).color:'var(--parchment)'}">Slot ${i+1}: ${t?gt(t.type).icon+' '+t.name:'Empty'}</span>
+        <select class="form-select" style="flex:1;font-size:13px" data-slot="${i}">
+          <option value="keep">Keep</option><option value="empty">Remove</option>
+          ${nip.map(c=>`<option value="${c.id}">${gt(c.type).icon} ${c.name}</option>`).join('')}
+        </select></div>`).join('')}
+      <div style="display:flex;gap:10px;margin-top:14px">
+        <button class="btn-secondary" id="rb-back">Back</button>
+        <button class="btn-primary" id="rb-ok">Confirm Long Rest</button>
+      </div>`;
+    body.querySelectorAll('select').forEach(sel=>sel.addEventListener('change',()=>{rSwaps[+sel.dataset.slot]=sel.value;}));
+    document.getElementById('rb-back').addEventListener('click',()=>{rMode=null;renderRest();});
+    document.getElementById('rb-ok').addEventListener('click',()=>{
+      S.pool=S.pool.map(t=>t?{...t,uses:t.maxUses}:null);
+      S.phantomPool=null;
+      S.synergies=S.synergies.map(s=>({...s,spent:false,phantomSlot:null}));
+      checkEpistasisBreak();
+      Object.entries(rSwaps).forEach(([i,val])=>{const idx=+i;if(val==='keep')return;if(val==='empty'){S.pool[idx]=null;return;}const nt=S.catalogue.find(c=>c.id===val);if(nt)S.pool[idx]={...nt,uses:nt.maxUses};});
+      document.getElementById('rest-overlay').classList.remove('open');renderAll();notify('Long rest — Pool fully refilled!');
+    });
+  }
+}
+
+// ════════════════════════════════════════════════════════
+// PAGE LOCK
+// ════════════════════════════════════════════════════════
+document.getElementById('btn-lock').addEventListener('click',()=>{S.pageLock=!S.pageLock;renderAll();notify(S.pageLock?'Page locked.':'Page unlocked.',S.pageLock?'var(--crimson)':'var(--gold)');});
+document.getElementById('lock-banner').addEventListener('click',()=>{S.pageLock=false;renderAll();notify('Page unlocked.','var(--gold)');});
+
+// ════════════════════════════════════════════════════════
+// DRAWER
+// ════════════════════════════════════════════════════════
+let activePanel='rules';
+document.getElementById('menu-btn').addEventListener('click',openDrawer);
+document.getElementById('drawer-close').addEventListener('click',closeDrawer);
+document.getElementById('drawer-overlay').addEventListener('click',closeDrawer);
+document.querySelectorAll('.drawer-nav-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    activePanel=btn.dataset.panel;
+    document.querySelectorAll('.drawer-nav-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');renderPanel();
+  });
+});
+function openDrawer(){document.getElementById('drawer').classList.add('open');document.getElementById('drawer-overlay').classList.add('open');renderPanel();}
+function closeDrawer(){document.getElementById('drawer').classList.remove('open');document.getElementById('drawer-overlay').classList.remove('open');}
+function renderPanel(){
+  const body=document.getElementById('drawer-body');
+  if(activePanel==='rules'){body.innerHTML=rulesHTML();return;}
+  if(activePanel==='settings'){body.innerHTML=settingsHTML();bindSettings();return;}
+  if(activePanel==='saveload'){body.innerHTML=saveLoadHTML();bindSaveLoad();return;}
+  if(activePanel==='observations'){body.innerHTML=observationsHTML();return;}
+  // edit panel now handled in Experiments tab — nothing to render in drawer
+}
+
+
+function observationsHTML(){
+  const discovered=S.synergies.filter(s=>s.discovered);
+  const undiscovered=S.synergies.filter(s=>!s.discovered);
+  const allTraits=getFullCatalogue();
+
+  function traitName(id){
+    // Special label for triggerAny
+    const t=allTraits.find(x=>x.id===id);
+    return t?t.name:id;
+  }
+  function triggerLabel(syn){
+    if(syn.triggerAny){
+      return traitName(syn.triggers[0])+' + any Conjuration Trait';
+    }
+    return syn.triggers.map(traitName).join(' + ');
+  }
+  function schoolColor(syn){
+    const t=allTraits.find(x=>x.id===syn.triggers[0]);
+    const ti=t?FIXED_TYPES.find(f=>f.id===t.type):null;
+    return ti?ti.color:'var(--gold)';
+  }
+
+  let html=`<h2 class="rules-h1" style="margin-bottom:4px">Observations</h2>
+  <div class="ornament-div">⁕ ⁕ ⁕</div>
+  <p class="rules-p" style="margin-bottom:16px">Epistasis events you have witnessed. Place the required Traits in your Pool to activate each effect.</p>`;
+
+  if(!discovered.length){
+    html+=`<p class="rules-p" style="color:var(--iron);font-style:italic">No Epistasis events discovered yet. Experiment with your Pool.</p>`;
+  } else {
+    discovered.forEach(syn=>{
+      const col=schoolColor(syn);
+      const statusTag=syn.spent
+        ?`<span class="ep-spent-tag">Spent</span>`
+        :`<span class="ep-available-tag">Available</span>`;
+      html+=`<div style="background:rgba(10,5,0,.85);border:1px solid ${col}44;border-radius:8px;padding:12px;margin-bottom:10px;position:relative;overflow:hidden;">
+        <div style="position:absolute;inset:0;background:linear-gradient(135deg,${col}08,transparent 60%);pointer-events:none;"></div>
+        <div style="position:relative;z-index:1;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;">
+            <span style="font-family:'Uncial Antiqua',serif;font-size:13px;color:${col}">${syn.name}</span>
+            ${statusTag}
+          </div>
+          <div style="font-size:12px;color:var(--aged);font-style:italic;margin-bottom:6px;">"${syn.flavor}"</div>
+          <div style="font-size:12px;color:var(--faded);margin-bottom:6px;"><span style="color:var(--gold)">⚙ </span>${syn.bonus}</div>
+          <div style="font-size:11px;color:var(--iron);letter-spacing:.5px;">
+            <span style="color:var(--parchment)">Trigger: </span>${triggerLabel(syn)}
+          </div>
+        </div>
+      </div>`;
+    });
+  }
+
+  if(undiscovered.length){
+    html+=`<div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--parchment);">
+      <p class="rules-p" style="color:var(--iron);font-style:italic">${undiscovered.length} undiscovered interaction${undiscovered.length!==1?'s':''} remain.</p>
+    </div>`;
+  }
+  return html;
+}
+
+function rulesHTML(){return`<h2 class="rules-h1">Boi's Chimeric Catalogue</h2>
+  <div class="ornament-div">&#x2055; &#x2055; &#x2055;</div>
+  <h2 class="rules-h2">What Are Chimeric Traits?</h2>
+  <p class="rules-p">Chimeric Traits are supernatural abilities drawn from the eight schools of magic. Each Trait represents a fragment of arcane power grafted onto your bloodline.</p>
+  <h2 class="rules-h2">The Pool</h2>
+  <p class="rules-p">Hold up to <strong>3 active Traits</strong> in your Pool. Each Trait has limited uses tracked by pips. <strong>All Traits are used as a Bonus Action</strong> unless otherwise specified.</p>
+  <ul>
+    <li class="rules-li">Traits <strong>with a dice formula</strong>: rolling spends a use.</li>
+    <li class="rules-li">Traits <strong>without a dice formula</strong>: click Activate to spend a use.</li>
+    <li class="rules-li">When all uses are spent, a Trait is exhausted until you rest.</li>
+  </ul>
+  <h2 class="rules-h2">Adding Traits to the Pool</h2>
+  <p class="rules-p">Tap an empty Pool slot to choose from your unlocked Catalogue. If the Pool is full, you will be prompted to replace an existing Trait.</p>
+  <h2 class="rules-h2">Rests</h2>
+  <ul>
+    <li class="rules-li"><strong>Short Rest:</strong> Refill one Trait's uses.</li>
+    <li class="rules-li"><strong>Long Rest:</strong> Refill all Traits and optionally swap any Pool slots.</li>
+  </ul>
+  <h2 class="rules-h2">Epistasis</h2>
+  <p class="rules-p">When all three Pool slots hold Traits of the <strong>same magic school</strong>, Epistasis triggers — named for the biological phenomenon where one gene suppresses another. A glowing inheritance tree connects the triggering Traits. Each combination grants a unique named effect, usable once per long rest.</p>
+  <ul>
+    <li class="rules-li"><strong>Abjuration &#x2014; Iron Covenant:</strong> Cannot be reduced below 1&#x202F;HP by a single strike.</li>
+    <li class="rules-li"><strong>Conjuration &#x2014; Planar Convergence:</strong> Pull any Conjuration Trait into a phantom 4th Pool slot.</li>
+    <li class="rules-li"><strong>Divination &#x2014; The Unveiled Thread:</strong> Ask the GM one yes/no question; they must answer truthfully.</li>
+    <li class="rules-li"><strong>Enchantment &#x2014; Sovereign Gaze:</strong> One creature is charmed for up to one hour, no save.</li>
+    <li class="rules-li"><strong>Evocation &#x2014; Cascade:</strong> Your next damage roll applies to all creatures within 10&#x202F;ft of the target.</li>
+    <li class="rules-li"><strong>Illusion &#x2014; Fractured Mirror:</strong> Three illusory duplicates appear; each vanishes on contact, lasting up to one hour.</li>
+    <li class="rules-li"><strong>Necromancy &#x2014; Sanguine Debt:</strong> Regain HP equal to your next damage roll total.</li>
+    <li class="rules-li"><strong>Transmutation &#x2014; Crucible State:</strong> Instantly swap any Pool Trait for a Transmutation Trait from your Catalogue.</li>
+  </ul>
+  <h2 class="rules-h2">Unlocking Traits</h2>
+  <p class="rules-p">Most Traits begin locked. Your GM provides unlock codes as you progress. Enter codes in <strong>Settings &#x2192; Catalogue Options</strong>. Re-entering a code for an already-unlocked Trait will lock it again.</p>
+  <h2 class="rules-h2">Experiments</h2>
+  <p class="rules-p">The Experiments tab lets you create custom Traits. Custom Traits are always available and are saved and exported with your data.</p>
+  <h2 class="rules-h2">Page Lock</h2>
+  <p class="rules-p">The &#x1F512; button in the header locks the app against accidental edits. Click the red banner or the button again to unlock.</p>
+  <div class="ornament-div" style="margin-top:16px">&#x2767;</div>`;}
+
+function editHTML(){return'';}  // now handled directly in renderExperimentsTab
+function bindEdit(){}
+
+function settingsHTML(){const h=S.hero;return`
+  <div class="section-label">Hero Info</div>
+  <div class="form-row"><label class="form-label">Name</label><input class="form-input" id="s-name" value="${h.name}" placeholder="Hero name"></div>
+  <div class="form-row"><label class="form-label">Proficiency Bonus</label><input class="form-input" id="s-prof" type="number" min="2" max="6" value="${h.profBonus}"></div>
+  <div class="form-row">
+    <label class="form-label">Spellcasting Modifier</label>
+    <div style="display:flex;gap:8px;align-items:center">
+      <select class="form-select" id="s-mod-type" style="flex:1">
+        ${['STR','DEX','CON','INT','WIS','CHA','OTHER'].map(m=>`<option value="${m}" ${h.modifierType===m?'selected':''}>${m}</option>`).join('')}
+      </select>
+      <input class="form-input" id="s-mod-val" type="number" min="-5" max="10" value="${h.modifierVal}" style="width:72px;text-align:center" placeholder="0">
+    </div>
+    <div style="font-size:11px;color:var(--aged);font-style:italic;margin-top:4px">Used to calculate Save DC: 8 + Prof + Modifier = ${8+h.profBonus+h.modifierVal}</div>
+  </div>
+  <div class="toggle-row"><input type="checkbox" id="s-ll" ${h.levelLock?'checked':''}><label class="toggle-lbl" for="s-ll">Show Character Level</label></div>
+  ${h.levelLock?`<div class="form-row"><label class="form-label">Level</label><input class="form-input" id="s-level" type="number" min="1" max="20" value="${h.level}"></div>`:''}
+  <div class="section-label" style="margin-top:14px">Catalogue Options</div>
+  <div class="toggle-row"><input type="checkbox" id="s-blur" ${h.blurLocked?'checked':''}><label class="toggle-lbl" for="s-blur">Blur descriptions of locked Traits</label></div>
+`;}
+function bindSettings(){
+  // Helper: read all current field values into S.hero, save, re-render
+  function applySettings(rerenderPanel=false){
+    const nameVal=document.getElementById('s-name')?.value.trim();
+    if(nameVal!==undefined) S.hero.name=nameVal;
+    const profVal=+document.getElementById('s-prof')?.value;
+    if(profVal>=2&&profVal<=6) S.hero.profBonus=profVal;
+    const modType=document.getElementById('s-mod-type')?.value;
+    if(modType) S.hero.modifierType=modType;
+    const modVal=+document.getElementById('s-mod-val')?.value;
+    if(!isNaN(modVal)) S.hero.modifierVal=modVal;
+    if(S.hero.levelLock){
+      const lvlVal=+document.getElementById('s-level')?.value;
+      if(lvlVal>=1&&lvlVal<=20) S.hero.level=lvlVal;
+    }
+    save();
+    renderHero();
+    // Only full re-render if blur changed (affects catalogue)
+  }
+
+  // Name — save on blur and Enter
+  const nameEl=document.getElementById('s-name');
+  if(nameEl){
+    nameEl.addEventListener('blur',()=>applySettings());
+    nameEl.addEventListener('keydown',e=>{if(e.key==='Enter'){nameEl.blur();}});
+  }
+
+  // Proficiency bonus — save on change
+  const profEl=document.getElementById('s-prof');
+  if(profEl){
+    profEl.addEventListener('change',()=>applySettings());
+    profEl.addEventListener('blur',()=>applySettings());
+  }
+  const modTypeEl=document.getElementById('s-mod-type');
+  if(modTypeEl) modTypeEl.addEventListener('change',()=>applySettings());
+  const modValEl=document.getElementById('s-mod-val');
+  if(modValEl){
+    modValEl.addEventListener('change',()=>applySettings());
+    modValEl.addEventListener('blur',()=>applySettings());
+  }
+
+  // Level lock toggle — save and re-render panel to show/hide level field
+  const llEl=document.getElementById('s-ll');
+  if(llEl){
+    llEl.addEventListener('change',e=>{
+      S.hero.levelLock=e.target.checked;
+      save(); renderHero(); renderPanel();
+    });
+  }
+
+  // Level field — save on change
+  const lvlEl=document.getElementById('s-level');
+  if(lvlEl){
+    lvlEl.addEventListener('change',()=>applySettings());
+    lvlEl.addEventListener('blur',()=>applySettings());
+  }
+
+  // Blur locked toggle — save and re-render catalogue
+  const blurEl=document.getElementById('s-blur');
+  if(blurEl){
+    blurEl.addEventListener('change',e=>{
+      S.hero.blurLocked=e.target.checked;
+      save(); renderCatalogue();
+    });
+  }
+  // Unlock code input
+  const uInp=document.getElementById('s-unlock-inp');
+  const uBtn=document.getElementById('s-unlock-btn');
+  if(uInp){
+    uInp.addEventListener('input',()=>{ uInp.value=uInp.value.toUpperCase().replace(/[^A-Z0-9-]/g,''); });
+    uInp.addEventListener('keydown',e=>{ if(e.key==='Enter'&&uBtn) uBtn.click(); });
+  }
+  if(uBtn){
+    uBtn.addEventListener('click',()=>{
+      if(!uInp) return;
+      const result=tryUnlockCode(uInp.value);
+      if(result.master){
+        uInp.value='';
+        renderAll();
+        notify(result.msg,'var(--gold-lt)');
+        return;
+      }
+      if(result.toggled){
+        uInp.value='';
+        renderAll();
+        notify(result.msg, result.unlocked?'var(--gold-lt)':'var(--aged)');
+        return;
+      }
+      if(!result.ok){
+        notify('Invalid unlock code.','var(--crimson)');
+        uInp.style.borderColor='var(--crimson)';
+        setTimeout(()=>uInp.style.borderColor='',1200);
+        return;
+      }
+      uInp.value='';
+      renderAll();
+      notify(`${result.trait.name} unlocked!`,'var(--gold-lt)');
+    });
+  }
+}
+
+function saveLoadHTML(){return`
+  <div class="section-label">Export</div>
+  <p class="rules-p">Download all data as a JSON file.</p>
+  <button class="btn-primary" id="sl-exp" style="width:100%;margin-bottom:20px">⬇ Export JSON</button>
+  <div class="section-label">Import</div>
+  <p class="rules-p" style="margin-bottom:10px">Upload a previously exported JSON file to restore your data.</p>
+  <label class="file-upload-btn" id="sl-upload-lbl">
+    ⬆ Choose JSON File
+    <input type="file" id="sl-file" accept=".json,application/json" style="display:none">
+  </label>
+  <div class="section-label">Reset</div>
+  <p class="rules-p" style="color:var(--crimson);margin-bottom:8px">This cannot be undone.</p>
+  <button class="btn-danger" id="sl-rst" style="width:100%">🗑 Reset All Data</button>`;}
+
+function bindSaveLoad(){
+  document.getElementById('sl-exp').addEventListener('click',()=>{
+    const now=new Date();
+    const stamp=`${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}`;
+    const name=`chimeric_catalogue_${stamp}.json`;
+    const blob=new Blob([JSON.stringify(S,null,2)],{type:'application/octet-stream'});
+    const u=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=u;a.download=name;
+    document.body.appendChild(a);a.click();
+    setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(u);},200);
+    notify('Exported as '+name);
+  });
+
+  document.getElementById('sl-file').addEventListener('change',function(){
+    const file=this.files[0];
+    if(!file) return;
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      let parsed;
+      try{ parsed=JSON.parse(ev.target.result); }
+      catch{ notify('Invalid JSON file.','var(--crimson)'); this.value=''; return; }
+      // Show confirm modal before applying
+      openConfirmModal(
+        'Import Save Data',
+        `Import <strong style="color:var(--faded)">${file.name}</strong>?<br><br><span style="color:var(--crimson)">This will overwrite all current data including your Pool, Catalogue progress, and character info.</span>`,
+        ()=>{
+          if(parsed.hero)S.hero=parsed.hero;
+          if(parsed.catalogue)S.catalogue=parsed.catalogue;
+          if(parsed.pool)S.pool=parsed.pool;
+          if(parsed.synergies)S.synergies=parsed.synergies;
+          if(parsed.customTraits)S.customTraits=parsed.customTraits;
+          if(parsed.customTypes)S.customTypes=parsed.customTypes;
+          if(parsed.pageLock!==undefined)S.pageLock=parsed.pageLock;
+          runMigrations();
+          save();
+          renderAll();
+          closeDrawer();
+          notify('Data imported successfully!');
+        },
+        'Import & Overwrite'
+      );
+      this.value=''; // reset file input
+    };
+    reader.readAsText(file);
+  });
+
+  document.getElementById('sl-rst').addEventListener('click',()=>{
+    openConfirmModal('Reset All Data','This will permanently erase all your Traits, Pool, progress, and character data. This cannot be undone.',()=>{
+      S={hero:{...DEFAULT_HERO},catalogue:JSON.parse(JSON.stringify(DEFAULT_TRAITS)),pool:[null,null,null],phantomPool:null,synergies:JSON.parse(JSON.stringify(DEFAULT_SYNERGIES)),customTraits:[],customTypes:[],pageLock:false};
+      dbDel(SK+'_portrait_orig').catch(()=>{});
+      save();renderAll();closeDrawer();notify('App reset.','var(--aged)');
+    },'Reset Everything');
+  });
+}
+
+// ════════════════════════════════════════════════════════
+// EDIT TRAIT MODAL
+// ════════════════════════════════════════════════════════
+document.getElementById('edit-close').addEventListener('click',()=>document.getElementById('edit-overlay').classList.remove('open'));
+document.getElementById('edit-overlay').addEventListener('click',e=>{if(e.target===e.currentTarget)document.getElementById('edit-overlay').classList.remove('open');});
+
+function openEditModal(trait,isCustom=false){
+  const isNew=!trait;
+  document.getElementById('edit-modal-title').textContent=isNew?'New Trait':'Edit Trait';
+  const t=trait||{id:uid(),name:'',type:'beast',ability:'',diceFormula:'',diceLabel:'',maxUses:3,uses:3,rarity:0,activations:0};
+  const initUseType=t.diceFormula?'attack':'activate';
+  // Live form state — persists across use-type toggles
+  // Reset fully from trait each time modal opens
+  let _draft={
+    name:t.name, type:t.type, rarity:t.rarity,
+    ability:t.ability, diceFormula:t.diceFormula||'',
+    diceLabel:t.diceLabel||'', maxUses:t.maxUses,
+  };
+  let _draftInitialized=false;
+  function snapshotDraft(){
+    const n=document.getElementById('em-name');    if(n) _draft.name=n.value;
+    const ty=document.getElementById('em-type');   if(ty) _draft.type=ty.value;
+    const ra=document.getElementById('em-rarity'); if(ra) _draft.rarity=+ra.value;
+    const ab=document.getElementById('em-ability');if(ab) _draft.ability=ab.value;
+    const di=document.getElementById('em-dice');   if(di&&di.type!=='hidden') _draft.diceFormula=di.value;
+    const dl=document.getElementById('em-dlbl');   if(dl&&dl.type!=='hidden') _draft.diceLabel=dl.value;
+    const mx=document.getElementById('em-max');    if(mx) _draft.maxUses=+mx.value||1;
+  }
+  function renderEditForm(useType){
+    if(_draftInitialized) snapshotDraft(); // only snapshot on re-renders
+    _draftInitialized=true;
+    const isAttack=useType==='attack';
+    document.getElementById('edit-modal-body').innerHTML=`
+      <div class="form-row"><label class="form-label">Name</label><input class="form-input" id="em-name" value="${_draft.name}" placeholder="Trait name"></div>
+      <div class="form-row"><label class="form-label">Magic School</label><select class="form-select" id="em-type">${allTypes().map(tp=>`<option value="${tp.id}" ${tp.id===_draft.type?'selected':''}>${tp.icon} ${tp.label}</option>`).join('')}</select></div>
+      <div class="form-row"><label class="form-label">Rarity</label><select class="form-select" id="em-rarity">${RARITY.map((r,i)=>`<option value="${i}" ${i===_draft.rarity?'selected':''}>${r}</option>`).join('')}</select></div>
+      <div class="form-row"><label class="form-label">Ability Description</label><textarea class="form-textarea" id="em-ability">${_draft.ability}</textarea></div>
+      <div class="form-row">
+        <label class="form-label">Use Type</label>
+        <div style="display:flex;gap:8px">
+          <button class="filter-type-btn${!isAttack?' active':''}" id="em-ut-activate" type="button">Activate</button>
+          <button class="filter-type-btn${isAttack?' active':''}" id="em-ut-attack" type="button">Attack</button>
+        </div>
+        <div style="font-size:12px;color:var(--aged);font-style:italic;margin-top:4px">${isAttack?'Requires dice formula and label.':'No dice roll — uses Activate button.'}</div>
+      </div>
+      ${isAttack?`
+      <div class="form-row"><label class="form-label">Dice Formula <span style="color:var(--crimson)">*</span></label><input class="form-input" id="em-dice" value="${_draft.diceFormula}" placeholder="e.g. 2d6, 1d8+3"></div>
+      <div class="form-row"><label class="form-label">Damage / Effect Label <span style="color:var(--crimson)">*</span></label><input class="form-input" id="em-dlbl" value="${_draft.diceLabel}" placeholder="e.g. Fire Dmg"></div>
+      `:'<input type="hidden" id="em-dice" value=""><input type="hidden" id="em-dlbl" value="">'}
+      <div class="form-row"><label class="form-label">Max Uses</label><input class="form-input" id="em-max" type="number" min="1" max="10" value="${_draft.maxUses}"></div>
+      <div style="display:flex;gap:10px;margin-top:16px"><button class="btn-secondary" id="em-cancel">Cancel</button><button class="btn-primary" id="em-save">Save Trait</button></div>`;
+    // Wire use type toggle
+    document.getElementById('em-ut-activate')?.addEventListener('click',()=>renderEditForm('activate'));
+    document.getElementById('em-ut-attack')?.addEventListener('click',()=>renderEditForm('attack'));
+    // Wire cancel/save
+    document.getElementById('em-cancel').addEventListener('click',()=>document.getElementById('edit-overlay').classList.remove('open'));
+    document.getElementById('em-save').addEventListener('click',saveEditedTrait);
+  }
+  renderEditForm(initUseType);
+  function saveEditedTrait(){
+    snapshotDraft();
+    const name=_draft.name.trim();
+    if(!name){notify('Trait needs a name.','var(--crimson)');return;}
+    const useType=document.getElementById('em-ut-attack')?.classList.contains('active')?'attack':'activate';
+    const diceFormula=useType==='attack'?_draft.diceFormula.trim()||null:null;
+    const diceLabel=useType==='attack'?_draft.diceLabel.trim()||null:null;
+    if(useType==='attack'&&!diceFormula){notify('Attack type requires a dice formula.','var(--crimson)');return;}
+    const maxUses=_draft.maxUses||1;
+    const saved={...t,name,type:_draft.type||t.type,
+      rarity:_draft.rarity||0,
+      ability:_draft.ability||'',
+      diceFormula,diceLabel,
+      maxUses,uses:isNew?maxUses:Math.min(t.uses,maxUses)};
+    if(isNew){
+      if(!saved.favourite)saved.favourite=false;
+      if(!saved.addedAt)saved.addedAt=Date.now();
+      saved.custom=true;saved.unlocked=true;
+      S.customTraits.push(saved);
+    } else {
+      const ci=S.customTraits.findIndex(x=>x.id===saved.id);
+      if(ci!==-1)S.customTraits[ci]=saved;
+      S.pool=S.pool.map(p=>p&&p.id===saved.id?{...saved,uses:p.uses}:p);
+      if(S.phantomPool&&S.phantomPool.id===saved.id)S.phantomPool={...saved,uses:S.phantomPool.uses};
+    }
+    document.getElementById('edit-overlay').classList.remove('open');
+    renderAll();if(activeTab==='experiments')renderExperimentsTab();
+    notify(`${saved.name} saved.`);
+  }
+  document.getElementById('edit-overlay').classList.add('open');
+}
+
+// ════════════════════════════════════════════════════════
+// CROP MODAL
+// ════════════════════════════════════════════════════════
+let _cropBox={x:0,y:0,size:100},_cropNW=0,_cropNH=0,_drag=null;
+
+// Open portrait manager modal (when portrait exists)
+function openPortraitModal(){
+  document.getElementById('portrait-preview').src=S.hero.portrait;
+  document.getElementById('portrait-overlay').classList.add('open');
+}
+document.getElementById('portrait-modal-close').addEventListener('click',()=>document.getElementById('portrait-overlay').classList.remove('open'));
+document.getElementById('portrait-overlay').addEventListener('click',e=>{if(e.target===e.currentTarget)document.getElementById('portrait-overlay').classList.remove('open');});
+document.getElementById('pmb-crop').addEventListener('click',()=>{
+  document.getElementById('portrait-overlay').classList.remove('open');
+  // Always crop from the original full-quality image
+  const src=S.hero.portraitOriginal||S.hero.portrait;
+  const img=document.getElementById('crop-img');
+  img.onload=()=>{
+    _cropNW=img.naturalWidth;_cropNH=img.naturalHeight;
+    const stage=document.getElementById('crop-stage');
+    const sw=stage.clientWidth,sh=img.clientHeight||sw;
+    const initSz=Math.min(sw,sh)*0.7;
+    _cropBox={x:(sw-initSz)/2,y:(sw-initSz)/2,size:initSz};
+    updateCropBox();
+  };
+  img.src=src;
+  document.getElementById('crop-overlay').classList.add('open');
+});
+document.getElementById('pmb-replace').addEventListener('click',()=>{
+  document.getElementById('portrait-overlay').classList.remove('open');
+  openCropPicker();
+});
+document.getElementById('pmb-remove').addEventListener('click',()=>{
+  openConfirmModal('Remove Portrait','Remove your portrait image? This cannot be undone.',()=>{
+    S.hero.portrait='';S.hero.portraitOriginal='';
+    document.getElementById('portrait-overlay').classList.remove('open');
+    renderAll();save();notify('Portrait removed.','var(--aged)');
+  },'Remove');
+});
+
+// Open file picker then crop (for new/replacement image)
+function openCropPicker(){
+  const inp=document.createElement('input');inp.type='file';inp.accept='image/*';
+  inp.onchange=e=>{
+    const file=e.target.files[0];if(!file)return;
+    const reader=new FileReader();
+    reader.onload=ev=>{
+      // Store full-quality original in IndexedDB (no size limit)
+      S.hero.portraitOriginal=ev.target.result;
+      const img=document.getElementById('crop-img');
+      img.onload=()=>{
+        _cropNW=img.naturalWidth;_cropNH=img.naturalHeight;
+        const stage=document.getElementById('crop-stage');
+        const sw=stage.clientWidth,sh=img.clientHeight||sw;
+        const initSz=Math.min(sw,sh)*0.7;
+        _cropBox={x:(sw-initSz)/2,y:(sh-initSz)/2,size:initSz};
+        updateCropBox();
+      };
+      img.src=ev.target.result;
+      document.getElementById('crop-overlay').classList.add('open');
+    };
+    reader.readAsDataURL(file);
+  };
+  inp.click();
+}
+
+function updateCropBox(){
+  const box=document.getElementById('crop-box'),stage=document.getElementById('crop-stage');
+  const img=document.getElementById('crop-img');
+  const sw=stage.clientWidth,sh=img.clientHeight||sw;
+  _cropBox.size=Math.max(40,Math.min(_cropBox.size,sw,sh));
+  _cropBox.x=Math.max(0,Math.min(_cropBox.x,sw-_cropBox.size));
+  _cropBox.y=Math.max(0,Math.min(_cropBox.y,sh-_cropBox.size));
+  box.style.left=_cropBox.x+'px';box.style.top=_cropBox.y+'px';
+  box.style.width=_cropBox.size+'px';box.style.height=_cropBox.size+'px';
+}
+
+(()=>{
+  const cropBox=document.getElementById('crop-box');
+  function getXY(e){return e.touches?{x:e.touches[0].clientX,y:e.touches[0].clientY}:{x:e.clientX,y:e.clientY};}
+  function startDrag(e){
+    const {x,y}=getXY(e);const h=e.target.dataset.h;
+    _drag=h?{type:'resize',h,sx:x,sy:y,sb:{..._cropBox}}:{type:'move',sx:x,sy:y,sb:{..._cropBox}};
+    e.preventDefault();
+  }
+  function moveDrag(e){
+    if(!_drag)return;e.preventDefault();
+    const {x,y}=getXY(e),dx=x-_drag.sx,dy=y-_drag.sy;
+    if(_drag.type==='move'){_cropBox.x=_drag.sb.x+dx;_cropBox.y=_drag.sb.y+dy;}
+    else{
+      const delta=Math.abs(dx)>Math.abs(dy)?dx:dy,h=_drag.h;let ns=_drag.sb.size;
+      if(h==='br')ns=_drag.sb.size+delta;
+      else if(h==='bl'){ns=_drag.sb.size-delta;_cropBox.x=_drag.sb.x+delta;}
+      else if(h==='tr'){ns=_drag.sb.size-dy;_cropBox.y=_drag.sb.y+dy;}
+      else if(h==='tl'){ns=_drag.sb.size-delta;_cropBox.x=_drag.sb.x+delta;_cropBox.y=_drag.sb.y+delta;}
+      _cropBox.size=ns;
+    }
+    updateCropBox();
+  }
+  function endDrag(){_drag=null;}
+  cropBox.addEventListener('mousedown',startDrag);cropBox.addEventListener('touchstart',startDrag,{passive:false});
+  document.addEventListener('mousemove',moveDrag);document.addEventListener('mouseup',endDrag);
+  document.addEventListener('touchmove',moveDrag,{passive:false});document.addEventListener('touchend',endDrag);
+})();
+
+document.getElementById('crop-close').addEventListener('click',()=>document.getElementById('crop-overlay').classList.remove('open'));
+document.getElementById('crop-cancel').addEventListener('click',()=>document.getElementById('crop-overlay').classList.remove('open'));
+document.getElementById('crop-overlay').addEventListener('click',e=>{if(e.target===e.currentTarget)document.getElementById('crop-overlay').classList.remove('open');});
+document.getElementById('crop-confirm').addEventListener('click',()=>{
+  const img=document.getElementById('crop-img'),stage=document.getElementById('crop-stage');
+  const dw=stage.clientWidth,dh=img.clientHeight||dw;
+  const sx=_cropBox.x*(_cropNW/dw),sy=_cropBox.y*(_cropNH/dh),ss=_cropBox.size*(Math.min(_cropNW/dw,_cropNH/dh));
+  const canvas=document.createElement('canvas');canvas.width=200;canvas.height=200;
+  canvas.getContext('2d').drawImage(img,sx,sy,ss,ss,0,0,200,200);
+  S.hero.portrait=canvas.toDataURL('image/jpeg',.85);
+  document.getElementById('crop-overlay').classList.remove('open');
+  renderAll();notify('Portrait updated.');
+});
+
+// ════════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════════
+async function loadStateFromDB(){
+  try{
+    // One-time migration from localStorage
+    const LEGACY_KEYS=['chimeric_v15','chimeric_v14','chimeric_v13','chimeric_v12',
+      'chimeric_v11','chimeric_v10','chimeric_v9','chimeric_v8','chimeric_v7',
+      'chimeric_v6','chimeric_v5','chimeric_v4','chimeric_v3','chimeric_v2','chimeric_v1','chimeric_catalogue'];
+    for(const key of LEGACY_KEYS){
+      try{
+        const raw=localStorage.getItem(key);
+        if(raw){
+          const d=JSON.parse(raw);
+          await dbSet(SK,d);
+          localStorage.removeItem(key);
+          console.log('[Chimeric] Migrated',key,'to IndexedDB');
+          return d;
+        }
+      }catch{}
+    }
+    const d=await dbGet(SK);
+    return d||null;
+  }catch(e){
+    console.warn('[Chimeric] DB load failed:',e);
+    return null;
+  }
+}
+
+async function initApp(){
+  const loaded=await loadStateFromDB();
+  if(loaded){
+    // Restore portrait original from separate key
+    try{
+      const orig=await dbGet(SK+'_portrait_orig');
+      if(orig) loaded.hero.portraitOriginal=orig;
+    }catch{}
+    // Merge loaded state into S
+    Object.assign(S,loaded);
+  }
+  runMigrations();
+  renderAll();
+}
+
+function runMigrations(){
+  if(!S.hero) S.hero={...DEFAULT_HERO};
+  if(S.hero.portraitOriginal===undefined) S.hero.portraitOriginal='';
+  if(S.hero.blurLocked===undefined) S.hero.blurLocked=true;
+  if(S.hero.levelLock===undefined) S.hero.levelLock=false;
+  if(S.hero.level===undefined) S.hero.level=1;
+  if(S.hero.profBonus===undefined) S.hero.profBonus=2;
+  if(S.hero.modifierType===undefined) S.hero.modifierType='STR';
+  if(S.hero.modifierVal===undefined) S.hero.modifierVal=0;
+  if(!S.pool||!Array.isArray(S.pool)) S.pool=[null,null,null];
+  while(S.pool.length<3) S.pool.push(null);
+  if(S.phantomPool===undefined) S.phantomPool=null;
+  if(!S.synergies||!S.synergies.length) S.synergies=JSON.parse(JSON.stringify(DEFAULT_SYNERGIES));
+  // Patch all synergies — ensure new fields exist and ep_con is correct
+  S.synergies.forEach(syn=>{
+    if(syn.discovered===undefined) syn.discovered=false;
+    if(syn.triggers===undefined){
+      // Legacy school-based synergy — replace with DEFAULT version
+      const def=DEFAULT_SYNERGIES.find(d=>d.id===syn.id);
+      if(def) Object.assign(syn,{...def,spent:syn.spent,phantomSlot:syn.phantomSlot});
+    }
+  });
+  const epCon=S.synergies.find(s=>s.id==='ep_con');
+  if(epCon){
+    if(epCon.triggerType!=='planar') epCon.triggerType='planar';
+    if(epCon.phantomSlot===undefined) epCon.phantomSlot=null;
+  }
+  if(!S.catalogue||!Array.isArray(S.catalogue)) S.catalogue=[];
+  if(!S.customTraits||!Array.isArray(S.customTraits)) S.customTraits=[];
+  if(!S.customTypes) S.customTypes=[];
+  if(S.pageLock===undefined) S.pageLock=false;
+  // Extract any custom traits mixed into S.catalogue
+  const builtInIds=new Set(DEFAULT_TRAITS.map(t=>t.id));
+  const extracted=S.catalogue.filter(t=>!builtInIds.has(t.id));
+  if(extracted.length){
+    extracted.forEach(t=>{t.custom=true;t.unlocked=true;});
+    S.customTraits=[...S.customTraits,...extracted.filter(t=>!S.customTraits.find(x=>x.id===t.id))];
+    S.catalogue=S.catalogue.filter(t=>builtInIds.has(t.id));
+  }
+  // Patch catalogue traits
+  S.catalogue.forEach(t=>{
+    if(t.favourite===undefined) t.favourite=false;
+    if(t.addedAt===undefined) t.addedAt=Date.now();
+    if(t.activations===undefined) t.activations=0;
+    if(t.unlocked===undefined) t.unlocked=UNLOCKED_BY_DEFAULT_IDS.has(t.id);
+  });
+  // Add any DEFAULT_TRAITS missing from saved catalogue (added in later iterations)
+  const savedIds=new Set(S.catalogue.map(t=>t.id));
+  DEFAULT_TRAITS.forEach(dt=>{
+    if(!savedIds.has(dt.id)){
+      S.catalogue.push({...dt});
+      console.log('[Chimeric] Added missing trait:',dt.name);
+    }
+  });
+  // Force-update any saved trait whose name/type/ability has changed vs DEFAULT_TRAITS
+  // (preserves user data: unlocked, favourite, activations, uses)
+  DEFAULT_TRAITS.forEach(dt=>{
+    const idx=S.catalogue.findIndex(t=>t.id===dt.id);
+    if(idx!==-1&&S.catalogue[idx].name!==dt.name){
+      console.log('[Chimeric] Updated trait',S.catalogue[idx].name,'->',dt.name);
+      S.catalogue[idx]={
+        ...dt,
+        unlocked:S.catalogue[idx].unlocked,
+        favourite:S.catalogue[idx].favourite,
+        activations:S.catalogue[idx].activations,
+        uses:Math.min(S.catalogue[idx].uses,dt.maxUses),
+      };
+    }
+  });
+  S.customTraits.forEach(t=>{
+    if(t.favourite===undefined) t.favourite=false;
+    if(t.addedAt===undefined) t.addedAt=Date.now();
+    if(t.activations===undefined) t.activations=0;
+    if(t.unlocked===undefined) t.unlocked=true;
+    if(t.custom===undefined) t.custom=true;
+  });
+}
+
+initApp();
+</script>
+</body>
+</html>
