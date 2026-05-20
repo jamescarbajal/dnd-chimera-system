@@ -889,7 +889,7 @@ const DEFAULT_SYNERGIES=[
 ];
 
 const DEFAULT_TRAITS=[
-  {id:'t1',unlocked:false,name:'Pounce',     type:'transmutation',uses:3,maxUses:3,rarity:0,activations:0,favourite:false,addedAt:1700000001000,ability:'Your body transmutes into raw predatory motion. Leap up to 20 ft and make a melee attack. On hit, the target must succeed on a DC 13 STR save or be knocked prone.',diceFormula:'1d6',diceLabel:'Bonus Dmg'},
+  {id:'t1',unlocked:false,name:'Pounce',     type:'transmutation',uses:3,maxUses:3,rarity:0,activations:0,favourite:false,addedAt:1700000001000,ability:'Your body transmutes into raw predatory motion. Leap up to 20 ft and make a melee attack. On hit, the target must succeed on a STR save or be knocked prone.',diceFormula:'1d6',diceLabel:'Bonus Dmg'},
   {id:'t2',unlocked:false,name:'Hex Bolt',   type:'enchantment',  uses:2,maxUses:2,rarity:1,activations:0,favourite:false,addedAt:1700000002000,ability:'Lace a creature\u2019s mind with a debilitating hex within 60 ft. The target takes 2d8 psychic damage and has disadvantage on its next saving throw.',diceFormula:'2d8',diceLabel:'Psychic Dmg'},
   {id:'t3',unlocked:false,name:'Hallowed Ground',type:'conjuration',uses:2,maxUses:2,rarity:1,activations:0,favourite:false,addedAt:1700000003000,ability:'Conjure surface material from the Elemental Plane of Radiance beneath your feet. The raw energy damages any creature in the Material Plane exposed to it within a 10-ft radius — each must make a WIS save or take 2d6 Radiant damage (half on success).',diceFormula:'2d6',diceLabel:'Radiant Dmg'},
   {id:'t4',unlocked:false,name:'Thornwall',  type:'conjuration',  uses:2,maxUses:2,rarity:0,activations:0,favourite:false,addedAt:1700000004000,ability:'Conjure a wall of thorns in a 10-ft line. Creatures passing through take 2d4 piercing damage and are slowed.',diceFormula:'2d4',diceLabel:'Piercing Dmg'},
@@ -2722,7 +2722,7 @@ function observationsHTML(){
 function rulesHTML(){return`<h2 class="rules-h1">Boi's Chimeric Catalogue</h2>
   <div class="ornament-div">&#x2055; &#x2055; &#x2055;</div>
   <h2 class="rules-h2">What Are Chimeric Traits?</h2>
-  <p class="rules-p">Chimeric Traits are supernatural abilities drawn from the eight schools of magic. Each Trait represents a fragment of arcane power grafted onto your bloodline.</p>
+  <p class="rules-p">Chimeric Traits are supernatural abilities within the eight schools of magic that are drawn from a living source and grafted to your bloodline. All traits function according to their unique characteristics, and any saves a target must make against the trait rolls against your Save DC.</p>
   <h2 class="rules-h2">The Pool</h2>
   <p class="rules-p">Hold up to <strong>3 active Traits</strong> in your Pool. Each Trait has limited uses tracked by pips. <strong>All Traits are used as a Bonus Action</strong> unless otherwise specified.</p>
   <ul>
@@ -2738,17 +2738,7 @@ function rulesHTML(){return`<h2 class="rules-h1">Boi's Chimeric Catalogue</h2>
     <li class="rules-li"><strong>Long Rest:</strong> Refill all Traits and optionally swap any Pool slots.</li>
   </ul>
   <h2 class="rules-h2">Epistasis</h2>
-  <p class="rules-p">When all three Pool slots hold Traits of the <strong>same magic school</strong>, Epistasis triggers — named for the biological phenomenon where one gene affects another. A glowing inheritance tree connects the triggering Traits. Each combination grants a unique effect, usable once per long rest.</p>
-  <ul>
-    <li class="rules-li"><strong>Abjuration &#x2014; Iron Covenant:</strong> Cannot be reduced below 1&#x202F;HP by a single strike.</li>
-    <li class="rules-li"><strong>Conjuration &#x2014; Planar Convergence:</strong> Pull any Conjuration Trait into a phantom 4th Pool slot.</li>
-    <li class="rules-li"><strong>Divination &#x2014; The Unveiled Thread:</strong> Ask the GM one yes/no question; they must answer truthfully.</li>
-    <li class="rules-li"><strong>Enchantment &#x2014; Sovereign Gaze:</strong> One creature is charmed for up to one hour, no save.</li>
-    <li class="rules-li"><strong>Evocation &#x2014; Cascade:</strong> Your next damage roll applies to all creatures within 10&#x202F;ft of the target.</li>
-    <li class="rules-li"><strong>Illusion &#x2014; Fractured Mirror:</strong> Three illusory duplicates appear; each vanishes on contact, lasting up to one hour.</li>
-    <li class="rules-li"><strong>Necromancy &#x2014; Sanguine Debt:</strong> Regain HP equal to your next damage roll total.</li>
-    <li class="rules-li"><strong>Transmutation &#x2014; Crucible State:</strong> Instantly swap any Pool Trait for a Transmutation Trait from your Catalogue.</li>
-  </ul>
+  <p class="rules-p">Some traits interact with each other in unique ways and create a unique <strong>Epistatis</strong> effect. Epistasis effects must be discovered, and are recorded in the side menu's "Observations" section. Each Epistatis effect is unique, usable only once per long rest.</p>
   <h2 class="rules-h2">Unlocking Traits</h2>
   <p class="rules-p">Most Traits begin locked. Your GM provides unlock codes as you progress. Enter codes in <strong>Settings &#x2192; Catalogue Options</strong>. Re-entering a code for an already-unlocked Trait will lock it again.</p>
   <h2 class="rules-h2">Experiments</h2>
