@@ -126,20 +126,20 @@ Ward of Retribution     CHM-7DB1-CFB6
 EPISTASIS COMBINATIONS
 =====================================================
 
-Iron Covenant		Null Grasp + Radiant Vow		Cannot be reduced below 1HP by a single strike.
+Iron Covenant		          Null Grasp + Radiant Vow		          Cannot be reduced below 1HP by a single strike.
 
-Planar Convergence	Blink + any Conjuration trait		Pull any Conjuration Trait into a phantom 4th Pool slot.
+Planar Convergence	      Blink + any Conjuration trait		      Pull any Conjuration Trait into a phantom 4th Pool slot.
 
-The Unveiled Thread	Fated Strike + Foretell Doom		Ask the GM one yes/no question; they must answer truthfully.
+The Unveiled Thread	      Fated Strike + Foretell Doom		      Ask the GM one yes/no question; they must answer truthfully.
 
-Sovereign Gaze		Hex Bolt + Compel Truth			One creature is charmed for up to one hour, no save
+Sovereign Gaze		        Hex Bolt + Compel Truth			          One creature is charmed for up to one hour, no save
 
-Cascade			Combust + Arc Flash			Your next damage roll applies to all creatures within 10ft of the target
+Cascade			              Combust + Arc Flash			              Your next damage roll applies to all creatures within 10ft of the target
 
-Fractured Mirror	Terrifying Visage + Veil of Mist	Three illusory duplicates appear; each vanishes on contact, lasting up to one hour
+Fractured Mirror	        Terrifying Visage + Veil of Mist	    Three illusory duplicates appear; each vanishes on contact, lasting up to one hour
 
-Sanguine Debt		Grave Chill + Death Knell		Regain HP equal to your next damage roll total
+Sanguine Debt		          Grave Chill + Death Knell		          Regain HP equal to your next damage roll total
 
-Crucible State		Pounce + Iron Skin			Instantly swap any Pool Trait for a Transmutation Trait from your Catalogue
+Crucible State		        Pounce + Iron Skin			              Instantly swap any Pool Trait for a Transmutation Trait from your Catalogue
 
 
