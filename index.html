@@ -842,12 +842,12 @@ const DEFAULT_SYNERGIES=[
     triggers:['t5','t6'],
     triggerCount:2,
     flavor:'The ward becomes flesh. Nothing shall pass.',
-    bonus:'Once per long rest: you cannot be reduced below 1 HP by a single strike. Mark as triggered when it activates.',
+    bonus:'Once per long rest, you cannot be reduced below 1 HP. Mark as triggered when it activates.',
     triggerType:'passive', spent:false, discovered:false},
   {id:'ep_con', name:'Planar Convergence',
     triggers:['t8'], triggerAny:true, triggerAnySchool:'conjuration',
     triggerCount:2,
-    flavor:'The planes fold. Something answers the call.',
+    flavor:'The planes fold and your power heightens.',
     bonus:'Once per long rest: pull any Conjuration Trait from your Catalogue into a free 4th Pool slot until your next Long Rest.',
     triggerType:'planar', spent:false, phantomSlot:null, discovered:false},
   {id:'ep_div', name:'The Unveiled Thread',
@@ -859,7 +859,7 @@ const DEFAULT_SYNERGIES=[
   {id:'ep_enc', name:'Sovereign Gaze',
     triggers:['t2','e1'],
     triggerCount:2,
-    flavor:'Your will supersedes their own. Resistance is a forgotten concept.',
+    flavor:'Your will supersedes theirs. Resistance is forgotten.',
     bonus:'Once per long rest: one creature you can see is charmed by you for up to one hour (no saving throw). The effect ends if you or your allies harm them.',
     triggerType:'use', spent:false, discovered:false},
   {id:'ep_evo', name:'Cascade',
@@ -877,7 +877,7 @@ const DEFAULT_SYNERGIES=[
   {id:'ep_nec', name:'Sanguine Debt',
     triggers:['n1','n3'],
     triggerCount:2,
-    flavor:'Life is merely energy. Energy cannot be destroyed.',
+    flavor:'Life is merely energy waiting to be reclaimed.',
     bonus:'Once per long rest: regain HP equal to the total of your next damage roll.',
     triggerType:'use', spent:false, discovered:false},
   {id:'ep_tra', name:'Crucible State',
@@ -2738,7 +2738,7 @@ function rulesHTML(){return`<h2 class="rules-h1">Boi's Chimeric Catalogue</h2>
     <li class="rules-li"><strong>Long Rest:</strong> Refill all Traits and optionally swap any Pool slots.</li>
   </ul>
   <h2 class="rules-h2">Epistasis</h2>
-  <p class="rules-p">Some traits interact with each other in unique ways and create a unique <strong>Epistatis</strong> effect. Epistasis effects must be discovered, and are recorded in the side menu's "Observations" section. Each Epistatis effect is unique, usable only once per long rest.</p>
+  <p class="rules-p">Some traits interact with each other and create unique <strong>Epistasis</strong> effects. Epistasis effects must be discovered and are recorded in the side menu's "Observations" section. Each Epistasis effect is usable as a free action once per long rest.</p>
   <h2 class="rules-h2">Unlocking Traits</h2>
   <p class="rules-p">Most Traits begin locked. Your GM provides unlock codes as you progress. Enter codes in <strong>Settings &#x2192; Catalogue Options</strong>. Re-entering a code for an already-unlocked Trait will lock it again.</p>
   <h2 class="rules-h2">Experiments</h2>
